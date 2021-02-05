@@ -1,19 +1,21 @@
+import numpy as np
+
 class Evaluate:
     def __init__(self):
         print('hello')
 
-    def Evaluate_winning(self, board, player='human'):
+    def Check_winning(self, board, player='human'):
         # TODO: check if line exist top to bottom
-        if player == 'bot':
+        return False
 
-            return True
+    def Check_ended(self, board):
         
-        else: 
-            
+        if np.all(board):
+            # Every field filled
             return True
 
-
-        return
+        else:
+            return False 
 
     # def Evaluate_bot(self, board):
     #     # TODO: check if line exist left to right

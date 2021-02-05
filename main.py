@@ -21,9 +21,8 @@ if __name__ == '__main__':
     main = QtWidgets.QMainWindow()
 
     main.setCentralWidget(QHexagonboard(
-        horizontal = True, 
-        rows = 5,
-        columns = 5,
+        dimension = 5,
+        bot_match = False,
         ))
 
     main.show()
