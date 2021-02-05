@@ -5,6 +5,7 @@ import random
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from bot import Bot as bot
 
 class QGameboard(QtWidgets.QGraphicsView):
     def __init__(self, rows, columns, size = 4, overlays = [], horizontal = True, relative = True):
@@ -41,10 +42,11 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.colliding_items = None
 
     def DoBotMove(self):
-        random.randint(1,self.rows)
-        random.randint(1,self.columns) 
+        location = bot().DoMove(self.rows, self.columns)      
+        
+        selected_tile = self.map_tile_by_coordinates[location]
 
-
+        self.Paint_tile(selected_tile, 'bot')
 
     def mousePressEvent(self, event):
 
@@ -91,37 +93,18 @@ class QGameboard(QtWidgets.QGraphicsView):
 
     def selection_new(self, new_selected_tile):
             
-        # paint the new tile
-        selectbrush = QtGui.QBrush(QtGui.QColor(255,255,0,255))
-        self.paint_graphic_items([new_selected_tile], brush = selectbrush)
-
-        # make new tile the selected tile
+        # Paint the newly selected tile
+        self.Paint_tile(new_selected_tile)
+        
+        # Make new tile the selected tile
         self.selected_tile = new_selected_tile
         
-        # QGraphics Items
-        # print(self.selected_tile)
-        # print(self.get_adjacent_tiles(self.selected_tile))
-
         # Grid Location of the selected tile
-        print('selected tile', self.get_tile_grid_location(self.selected_tile))
+        print('Selected tile', self.get_tile_grid_location(self.selected_tile))
 
         # And its adjecent tiles
         for tile in self.get_adjacent_tiles(self.selected_tile):
-          print(self.get_tile_grid_location(tile)) 
-        # Here
-
-        
-        
-
-
-        myChoice = random.choice(self.get_adjacent_tiles(self.selected_tile))
-        print('choice', myChoice)
-        print(self.get_tile_grid_location(myChoice))
-
-        self.paint_graphic_items([myChoice], brush = selectbrush)
-
-
-        # paint adjacent tiles
+          print('Adjecent tile', self.get_tile_grid_location(tile))         
 
     def selection_adjacent_tiles(self):
 
@@ -129,10 +112,19 @@ class QGameboard(QtWidgets.QGraphicsView):
         adjacent_tiles = self.get_adjacent_tiles(self.selected_tile)
 
         # paint adjacent tiles
-        adjacent_brush = QtGui.QBrush(QtGui.QColor(0,0,255,255))
-        self.paint_graphic_items(adjacent_tiles, brush = adjacent_brush)
+        # adjacent_brush = QtGui.QBrush(QtGui.QColor(0,0,255,255))
+        # self.paint_graphic_items(adjacent_tiles, brush = adjacent_brush)
 
         return adjacent_tiles
+
+    def Paint_tile(self, tile, player='human'):
+        if player == 'bot':
+            brush = QtGui.QBrush(QtGui.QColor(255,0,0,255))
+        else:
+            brush = QtGui.QBrush(QtGui.QColor(255,255,0,255))
+ 
+        self.paint_graphic_items([tile], brush = brush)
+
 
     def wheelEvent(self, event):
 
