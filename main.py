@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     main.setCentralWidget(QHexagonboard(
         dimension = 5,
-        bot_match = False,
+        bot_match = False, #FIXME: wont display window when botmatch and dimension > 5
         ))
 
     main.show()

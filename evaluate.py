@@ -1,8 +1,8 @@
 import numpy as np
 
 class Evaluate:
-    def __init__(self):
-        print('hello')
+    # def __init__(self):
+    #     print('hello')
 
     def Check_winning(self, board, player='human'):
         # TODO: check if line exist top to bottom

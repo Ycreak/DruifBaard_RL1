@@ -42,12 +42,15 @@ class QGameboard(QtWidgets.QGraphicsView):
         # Data for bots
         self.board = self.Create_numpy_board(self.rows, self.columns)
         self.bot_match = bot_match
+        # Colours
+        self.yellow = [255,255,0]
+        self.red = [255,0,0]
 
         # We can pitch two bots against eachother.
         if bot_match:
             while not evaluate().Check_ended(self.board):
-                self.Do_bot_move('random', 255,255,0)
-                self.Do_bot_move('random', 255,0,0)
+                self.Do_bot_move('random', self.yellow)
+                self.Do_bot_move('random', self.red)
 
             print('No moves possible, end of game.')
 
@@ -64,8 +67,6 @@ class QGameboard(QtWidgets.QGraphicsView):
         else:
             code = 1
         
-        print('i updated', x, y)
-
         # Numpy begins with 0,0. The other system not... of course.
         board[x,y] = code
 
@@ -79,17 +80,17 @@ class QGameboard(QtWidgets.QGraphicsView):
 
 
 
-    def Do_bot_move(self, bot_type, r,g,b):
+    def Do_bot_move(self, bot_type, colour):
         # TODO: Provide the bot with a snapshot of the current board.
         
-        x, y = bot().Do_move(self.board)   
+        x, y = bot().Do_move(self.board, bot_type)   
         
         # Convert Bot move to usable format FIXME: should be more elegant        
         location = str(x) + '-' + str(y)
 
         selected_tile = self.map_tile_by_coordinates[location]
         # Paint what is done
-        self.Paint_tile(selected_tile, r,g,b)
+        self.Paint_tile(selected_tile, colour)
         # Update the numpy matrix
         self.board = self.Update_numpy_board(self.board, x, y, 'bot')
 
@@ -114,9 +115,9 @@ class QGameboard(QtWidgets.QGraphicsView):
         # Check if move is legal: if yes, paint and let bot move
         if self.Legal_move(self.board, coordinates[0], coordinates[1]):
             print('Legal move.')
-            self.Paint_tile(new_selected_tile, 255,255,0)
+            self.Paint_tile(new_selected_tile, self.yellow)
             self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1])
-            self.Do_bot_move('random', 255, 0 , 0)
+            self.Do_bot_move('random', self.red)
             print(self.board)
 
             if evaluate().Check_winning(self.board):
@@ -143,7 +144,11 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         return adjacent_tiles
 
-    def Paint_tile(self, tile, r, g, b):
+    def Paint_tile(self, tile, colour):
+
+        r = colour[0]
+        g = colour[1]
+        b = colour[2]
 
         brush = QtGui.QBrush(QtGui.QColor(r,g,b,255))
  

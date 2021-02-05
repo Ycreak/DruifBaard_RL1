@@ -10,11 +10,9 @@ class Bot:
         else: 
             return False
 
-    def Do_move(self, board):
-        
-        return self.Random_bot(board)
-        
-
+    def Do_move(self, board, bot_type):
+        if bot_type == 'random':
+            return self.Random_bot(board)
 
     def Random_bot(self, board):
         x = random.randint(0,5) 
