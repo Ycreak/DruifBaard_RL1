@@ -4,11 +4,12 @@
 import sys, math
 import collections
 import random 
+import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 # Class Imports
 from bot import Bot as bot
-
+from evaluate import Evaluate as evaluate
 class QGameboard(QtWidgets.QGraphicsView):
     """This class handles the entire gameboard and exports it as a QT5 widget.
 
@@ -40,14 +41,54 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.adjacent_tiles = None
         self.target_tile = None
 
+        self.board = self.Create_numpy_board(self.rows, self.columns)
+
+    def Create_numpy_board(self, rows, columns):
+        # FIXME: need to get the shape better. Always same num of rows & col
+        board = np.zeros(shape=(rows + 1, columns + 1), dtype=int)
+        
+        return board
+
+    def Update_numpy_board(self, board, x, y, player='human'):
+
+        if player == 'bot':
+            code = 2
+        else:
+            code = 1
+        
+        print('i updated', x, y)
+
+        # Numpy begins with 0,0. The other system not... of course.
+        board[x,y] = code
+
+        return board
+
+    def Legal_move(self, board, x, y):
+        if board[x, y] != 0:
+            return False
+        else: 
+            return True
+
+
+
     def DoBotMove(self):
         # TODO: Provide the bot with a snapshot of the current board.
         
-        location = bot().DoMove(self.rows, self.columns)      
+        x, y = bot().DoMove(self.board)   
         
-        selected_tile = self.map_tile_by_coordinates[location]
+        # Convert Bot move to usable format FIXME: should be more elegant        
+        location = str(x) + '-' + str(y)
 
+        selected_tile = self.map_tile_by_coordinates[location]
+        # Paint what is done
         self.Paint_tile(selected_tile, 'bot')
+        # Update the numpy matrix
+        self.board = self.Update_numpy_board(self.board, x, y, 'bot')
+
+        if evaluate().Check_winning(self.board, 'bot'): # FIXME:
+            print('You have won!')
+            exit(0)
+
 
     def mousePressEvent(self, event):
         """This functions listens for mouse activity. Calls functions accordingly
@@ -67,11 +108,31 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         # TODO: If already selected, ask to try again
 
-        self.Selection_new(new_selected_tile)
-        self.selection_adjacent_tiles()
+
+
+        # Update numpy board
+        coordinates = self.get_tile_grid_location(new_selected_tile)
+        
+        if self.Legal_move(self.board, coordinates[0], coordinates[1]):
+            print('Legal move.')
+            self.Selection_new(new_selected_tile) # FIXME: this is convoluted.
+            self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1])
+            self.DoBotMove()
+            print(self.board)
+
+            if evaluate().Check_winning(self.board):
+                print('You have won!')
+                exit(0)
+
+        else:
+            print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.')
+        
+
+        # List adjacent (and optionally colour them)
+        # self.selection_adjacent_tiles()
 
         # Now the bot may move
-        self.DoBotMove()
+
 
     def Selection_new(self, new_selected_tile):
         """[summary]
@@ -86,11 +147,11 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.selected_tile = new_selected_tile
         
         # Grid Location of the selected tile
-        print('Selected tile', self.get_tile_grid_location(self.selected_tile))
+        # print('Selected tile', self.get_tile_grid_location(self.selected_tile))
 
         # And its adjecent tiles
-        for tile in self.get_adjacent_tiles(self.selected_tile):
-          print('Adjecent tile', self.get_tile_grid_location(tile))         
+        # for tile in self.get_adjacent_tiles(self.selected_tile):
+        #   print('Adjecent tile', self.get_tile_grid_location(tile))         
 
     def selection_adjacent_tiles(self):
 
@@ -140,7 +201,6 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.center = QtCore.QPointF(self.geometry().width() / 2, self.geometry().height() / 2)
 
         self.build_tiles()
-        self.build_overlays()
 
     def build_tiles(self):
 
@@ -149,10 +209,10 @@ class QGameboard(QtWidgets.QGraphicsView):
         pen = QtGui.QPen(QtGui.QColor(0,0,0), 1, QtCore.Qt.SolidLine)
         
         # Create tiles for all the rows and columns
-        row = 1
+        row = 0
         while row <= self.rows:
 
-            column = 1
+            column = 0
             while column <= self.columns:
 
                 """
@@ -168,43 +228,6 @@ class QGameboard(QtWidgets.QGraphicsView):
                 # break
             row += 1
             # break
-
-    def build_overlays(self):
-
-        # Create overlays
-        for overlay in self.overlays:
-            
-            # Get brush
-            if overlay["Brush"] != "":
-                brush = overlay["Brush"]
-            else:
-                brush = None
-
-            # Get pen
-            if overlay["Pen"] != "":
-                pen = overlay["Pen"]
-            else:
-                pen = None
-
-            # create tile list to paint for this overlay
-            overlay_tiles = []
-            
-            for overlay_coordinates in overlay["Positions"]:
-
-                # get position info from the tile list
-                overlay_coordinates_string = f"{overlay_coordinates[0]}-{overlay_coordinates[1]}"
-
-                # get the respective tile
-                tile = self.map_tile_by_coordinates[overlay_coordinates_string]
-                
-                # move the tile on top of the background tiles
-                tile.setZValue(1)
-                
-                # add to the overlay tiles
-                overlay_tiles.append(tile)
-
-            # paint all the respective tiles
-            self.paint_graphic_items(overlay_tiles, pen, brush)
 
     def get_tile_grid_location(self, tile):
         for graphics_item in self.map_coordinates_by_tile:

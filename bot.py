@@ -4,12 +4,16 @@ class Bot:
     def __init__(self):
         print('bliep bloop')
 
-    def DoMove(self, rows, columns):
-        bot_row = random.randint(1,rows)
-        bot_column = random.randint(1,columns) 
+    def DoMove(self, board):
+        x = random.randint(0,5) 
+        y = random.randint(0,5)
 
-        location = str(bot_row) + '-' + str(bot_column)
+        # Checks if move is legal
+        while board[x, y] != 0:
 
-        # TODO: check if move is legal
+            y = random.randint(0,5)
+            x = random.randint(0,5) 
 
-        return location
+        print('bot move', x, y)
+
+        return x, y

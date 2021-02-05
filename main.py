@@ -22,8 +22,8 @@ if __name__ == '__main__':
 
     main.setCentralWidget(QHexagonboard(
         horizontal = True, 
-        rows = 6,
-        columns = 6,
+        rows = 5,
+        columns = 5,
         ))
 
     main.show()
