@@ -25,7 +25,7 @@ if __name__ == '__main__':
         "Brush": overlay1brush,
         "Pen": overlay1pen,
         "Positions": [
-            [5,5],
+            # [5,5],
             ],
         }
 
@@ -39,9 +39,9 @@ if __name__ == '__main__':
     main = QtWidgets.QMainWindow()
 
     main.setCentralWidget(QHexagonboard(
-        # horizontal = True, 
-        rows = 20, #6 * 2, 
-        columns = 10, # 6 / 2,
+        horizontal = True, 
+        rows = 6, #6 * 2, 
+        columns = 6, # 6 / 2,
         overlays = overlays,
         ))
 
