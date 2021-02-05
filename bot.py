@@ -10,4 +10,6 @@ class Bot:
 
         location = str(bot_row) + '-' + str(bot_column)
 
+        # TODO: check if move is legal
+
         return location

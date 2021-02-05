@@ -1,47 +1,48 @@
+# Based on https://pypi.org/project/pyqt-gameboard/
+
+# Library Imports
 import sys, math
 import collections
-
 import random 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+# Class Imports
 from bot import Bot as bot
 
 class QGameboard(QtWidgets.QGraphicsView):
+    """This class handles the entire gameboard and exports it as a QT5 widget.
+
+    Args:
+        QtWidgets (QtWidget): Screen stuff handle thingy.
+    """    
     def __init__(self, rows, columns, size = 4, overlays = [], horizontal = True, relative = True):
         QtWidgets.QGraphicsView.__init__(self)
-
-        # set board parameters
+        # Board parameters. Provided by the class caller (main.py).
         self.rows = rows
         self.columns = columns
         self.size = size
         self.overlays = overlays
         self.horizontal = horizontal
         self.relative = relative
-
-        # default parameters
-        self.deltaF = 1.0
-
-        self.scalemanual = 10 # 100%
-        self.center = None
-        self.shiftfocus = QtCore.QPointF(0, 0)
-
+        # Default parameters
+        self.deltaF = 1.0 # Used in WheelEvent
+        self.center = None # Used to put hexagons relatively on the screen
+        self.shiftfocus = QtCore.QPointF(0, 0) # Same
+        # Tuples that map coordinates to tiles
         self.map_coordinates_by_tile = {}
         self.map_tile_by_coordinates = {}
-
-        # build board and set to this widget
+        # Board and widget building
         self.scene = QtWidgets.QGraphicsScene()
         self.build_board_scene()
         self.setScene(self.scene)
-
-        # selections and stuff
+        # Tile data
         self.selected_tile = None
         self.adjacent_tiles = None
         self.target_tile = None
-        self.line_of_sight = None
-        self.colliding_items = None
 
     def DoBotMove(self):
+        # TODO: Provide the bot with a snapshot of the current board.
+        
         location = bot().DoMove(self.rows, self.columns)      
         
         selected_tile = self.map_tile_by_coordinates[location]
@@ -49,7 +50,11 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.Paint_tile(selected_tile, 'bot')
 
     def mousePressEvent(self, event):
+        """This functions listens for mouse activity. Calls functions accordingly
 
+        Args:
+            event ([type]): mouse event
+        """        
         # store current selected tile
         current_selected_tile = self.selected_tile
 
@@ -62,37 +67,18 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         # TODO: If already selected, ask to try again
 
-        # if clicked outside of map, remove selection of current selected tile
-
-        # Here
-        self.selection_new(new_selected_tile)
+        self.Selection_new(new_selected_tile)
         self.selection_adjacent_tiles()
 
+        # Now the bot may move
         self.DoBotMove()
 
-        # if new_selected_tile == None and current_selected_tile != None:
-                
-        #     self.selection_removal(current_selected_tile)
+    def Selection_new(self, new_selected_tile):
+        """[summary]
 
-        #     if self.target_tile != None:
-        #         self.target_removal()
-
-        # elif new_selected_tile != None and current_selected_tile == None:
-
-        #     self.selection_new(new_selected_tile)
-        #     self.selection_adjacent_tiles()
-
-        # elif new_selected_tile != None and current_selected_tile != None:
-        #     if self.target_tile != None:
-        #         self.target_switch(new_selected_tile)
-
-        #     elif self.target_tile == None:
-        #         self.target_new(new_selected_tile)
-
-        #     self.selection_adjacent_tiles()
-
-    def selection_new(self, new_selected_tile):
-            
+        Args:
+            new_selected_tile ([type]): [description]
+        """            
         # Paint the newly selected tile
         self.Paint_tile(new_selected_tile)
         

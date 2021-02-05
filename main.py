@@ -11,25 +11,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 
 from gameboard import QHexagonboard
 
-
-
-
 if __name__ == '__main__':
-
-    overlays = []
-
-    overlay1brush = QtGui.QBrush(QtGui.QColor(0,255,0,150))
-    overlay1pen = QtGui.QPen(QtGui.QColor(0,255,0), 3)
-
-    overlay1dict = {
-        "Brush": overlay1brush,
-        "Pen": overlay1pen,
-        "Positions": [
-            # [5,5],
-            ],
-        }
-
-    overlays.append(overlay1dict)
 
     # Qt Application
     global app
@@ -40,9 +22,8 @@ if __name__ == '__main__':
 
     main.setCentralWidget(QHexagonboard(
         horizontal = True, 
-        rows = 6, #6 * 2, 
-        columns = 6, # 6 / 2,
-        overlays = overlays,
+        rows = 6,
+        columns = 6,
         ))
 
     main.show()
