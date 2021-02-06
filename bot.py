@@ -1,13 +1,15 @@
 import random
+import numpy as np
 
 class Bot:
     def __init__(self):
         print('bliep bloop')
 
-    def Legal_move(self, board, x, y):
-        if board[x, y] == 0:
+    def Check_board_full(self,board):
+        if np.count_nonzero(board==0) == 0:
+            # There are no zeroes on the board
             return True
-        else: 
+        else:
             return False
 
     def Do_move(self, board, bot_type):
@@ -15,14 +17,15 @@ class Bot:
             return self.Random_bot(board)
 
     def Random_bot(self, board):
-        x = random.randint(0,5) 
-        y = random.randint(0,5)
+        
+        if self.Check_board_full(board):
+            x = -1
+            y = -1
 
-        # Checks if move is legal
-        while not self.Legal_move(board, x, y):
-            x = random.randint(0,5) 
-            y = random.randint(0,5)
-
-        print('bot move', x, y)
+        else: 
+            # Find available spots and pick one     
+            indeces = np.argwhere(board == 0) 
+            x, y = random.choice(indeces)
+            print('bot move', x, y)
 
         return x, y

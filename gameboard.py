@@ -49,8 +49,13 @@ class QGameboard(QtWidgets.QGraphicsView):
         # We can pitch two bots against eachother.
         if bot_match:
             while not evaluate().Check_ended(self.board):
-                self.Do_bot_move('random', self.yellow)
-                self.Do_bot_move('random', self.red)
+                self.Do_bot_move('random', self.yellow, 'player1')
+                self.Do_bot_move('random', self.red, 'player2')
+
+                if evaluate().Check_winning(self.board): # FIXME:
+                    print('You have won!')
+                    break
+
 
             print('No moves possible, end of game.')
 
@@ -60,14 +65,14 @@ class QGameboard(QtWidgets.QGraphicsView):
         
         return board
 
-    def Update_numpy_board(self, board, x, y, player='human'):
+    def Update_numpy_board(self, board, x, y, player='player1'):
 
-        if player == 'bot':
+        if player == 'player2':
             code = 2
         else:
             code = 1
         
-        # Numpy begins with 0,0. The other system not... of course.
+        # Numpy begins with 0,0
         board[x,y] = code
 
         return board
@@ -78,33 +83,33 @@ class QGameboard(QtWidgets.QGraphicsView):
         else: 
             return True
 
-
-
-    def Do_bot_move(self, bot_type, colour):
+    def Do_bot_move(self, bot_type, colour, player):
         # TODO: Provide the bot with a snapshot of the current board.
         
         x, y = bot().Do_move(self.board, bot_type)   
         
-        # Convert Bot move to usable format FIXME: should be more elegant        
-        location = str(x) + '-' + str(y)
+        if x == -1:
+            print('No possible move. Array is full.')
 
-        selected_tile = self.map_tile_by_coordinates[location]
-        # Paint what is done
-        self.Paint_tile(selected_tile, colour)
-        # Update the numpy matrix
-        self.board = self.Update_numpy_board(self.board, x, y, 'bot')
+        else:
+            location = f"{x}-{y}"
+            selected_tile = self.map_tile_by_coordinates[location]
+            # Paint what is done
+            self.Paint_tile(selected_tile, colour)
+            # Update the numpy matrix
+            self.board = self.Update_numpy_board(self.board, x, y, player)
 
-        if evaluate().Check_winning(self.board, 'bot'): # FIXME:
-            print('You have won!')
-            # exit(0)
-
+            if evaluate().Check_winning(self.board, 'bot'): # FIXME:
+                print('You have won!')
 
     def mousePressEvent(self, event):
         """This functions listens for mouse activity. Calls functions accordingly
 
         Args:
             event ([type]): mouse event
-        """        
+        """
+
+        print('-------------------')        
         # get position (of pixel clicked)
         position = self.mapToScene(event.pos())
         # associated tile graphic_item
@@ -112,13 +117,14 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         # Update numpy board
         coordinates = self.Get_tile_grid_location(new_selected_tile)
+        print('coordinates', coordinates)
         # Check if move is legal: if yes, paint and let bot move
         if self.Legal_move(self.board, coordinates[0], coordinates[1]):
-            print('Legal move.')
+            print('Legal move.', coordinates)
             self.Paint_tile(new_selected_tile, self.yellow)
             self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1])
-            self.Do_bot_move('random', self.red)
-            print(self.board)
+            self.Do_bot_move('random', self.red, 'player2')
+            # print(self.board)
 
             if evaluate().Check_winning(self.board):
                 print('You have won!')
