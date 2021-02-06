@@ -5,7 +5,7 @@ class Bot:
     def __init__(self):
         print('bliep bloop')
 
-    def Check_board_full(self,board):
+    def Check_board_full(self, board):
         if np.count_nonzero(board==0) == 0:
             # There are no zeroes on the board
             return True

@@ -11,7 +11,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 # Class Imports
 from bot import Bot as bot
-from evaluate import Evaluate as evaluate
+from evaluate import Evaluate
+
 class QGameboard(QtWidgets.QGraphicsView):
     """This class handles the entire gameboard and exports it as a QT5 widget.
 
@@ -39,23 +40,29 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.selected_tile = None
         self.adjacent_tiles = None
         self.target_tile = None
+        # For our offset specific! (90 degree angle)
+        self.adjacent_offset = [
+            [0,-1], # topleft
+            [1,-1], # topright
+            [1,0],  # right
+            [0,1],  # bottomright
+            [-1,1],  # bottomleft
+            [-1,0], # left     
+        ]
         # Data for bots
         self.board = self.Create_numpy_board(self.rows, self.columns)
         self.bot_match = bot_match
         # Colours
         self.yellow = [255,255,0]
         self.red = [255,0,0]
+        # Initialise the evaluate functions
+        self.eval = Evaluate(self.board, self.adjacent_offset)
 
         # We can pitch two bots against eachother.
         if bot_match:
-            while not evaluate().Check_ended(self.board):
+            while not self.eval.Check_ended(self.board):
                 self.Do_bot_move('random', self.yellow, 'player1')
                 self.Do_bot_move('random', self.red, 'player2')
-
-                if evaluate().Check_winning(self.board): # FIXME:
-                    print('You have won!')
-                    break
-
 
             print('No moves possible, end of game.')
 
@@ -99,8 +106,9 @@ class QGameboard(QtWidgets.QGraphicsView):
             # Update the numpy matrix
             self.board = self.Update_numpy_board(self.board, col, row, player)
 
-            if evaluate().Check_winning(self.board, 'bot'): # FIXME:
-                print('You have won!')
+            # Check if game over TODO: this is convoluted
+            if self.eval.Check_ended(self.board):
+                print('Game over')
 
     def mousePressEvent(self, event):
         """This functions listens for mouse activity. Calls functions accordingly
@@ -118,6 +126,11 @@ class QGameboard(QtWidgets.QGraphicsView):
         # Update numpy board
         coordinates = self.Get_tile_grid_location(new_selected_tile)
         print('coordinates', coordinates)
+        
+        # Check if game over
+        if self.eval.Check_ended(self.board):
+            print('Game over')
+        
         # Check if move is legal: if yes, paint and let bot move
         if self.Legal_move(self.board, coordinates[0], coordinates[1]):
             print('Legal move.', coordinates)
@@ -126,9 +139,7 @@ class QGameboard(QtWidgets.QGraphicsView):
             self.Do_bot_move('random', self.red, 'player2')
             # print(self.board)
 
-            if evaluate().Check_winning(self.board):
-                print('You have won!')
-                # exit(0)
+
 
         else:
             print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.')
@@ -280,18 +291,7 @@ class QHexagonboard(QGameboard):
         coordinates = self.Get_tile_grid_location(target_tile)
         # adjacent coordinates
 
-        # For our offset specific! (90 degree angle)
-        adjacent_offset = [
-            [0,-1], # topleft
-            [1,-1], # topright
-            [1,0],  # right
-            [0,1],  # bottomright
-            [-1,1],  # bottomleft
-            [-1,0], # left
-            
-        ]
-
-        for offset in adjacent_offset:
+        for offset in self.adjacent_offset:
             adjacent_coordinate = [coordinates[0] + offset[0], coordinates[1] + offset[1]]
 
             try:

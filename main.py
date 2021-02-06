@@ -5,6 +5,9 @@
 # Job van der Zwaag S1? :O
 # Luuk Nolden S1370898
 
+# RUN AS FOLLOWS:
+#   $ python3 main.py <dimension> <--bot_match true>
+
 import sys
 import argparse
 
@@ -16,9 +19,9 @@ if __name__ == '__main__':
 
     # Parse command line arguments:
     p = argparse.ArgumentParser(description="Provide your parameters")
-    # p.add_argument("input", type=argparse.FileType("r"),
-    #             help="input file with one verse of poetry per line. Optionally, the verse can be "
-    #                     "preceded by a unique index and a tab (set -input_index to True in this case)")
+    p.add_argument("dimension", type=int, default=6,
+                help="input file with one verse of poetry per line. Optionally, the verse can be "
+                        "preceded by a unique index and a tab (set -input_index to True in this case)")
     # p.add_argument("output", type=argparse.FileType("w"),
     #             help="output file name (should end with .json)")
     # p.add_argument("meter", type=str, choices=list(Meter.METERS.keys()),
@@ -45,8 +48,8 @@ if __name__ == '__main__':
     main = QtWidgets.QMainWindow()
 
     main.setCentralWidget(QHexagonboard(
-        dimension = 6,
-        bot_match = bot_match, #FIXME: wont display window when botmatch and dimension > 5
+        dimension = args.dimension,
+        bot_match = bot_match,
         ))
 
     main.show()
