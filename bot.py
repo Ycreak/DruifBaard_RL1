@@ -19,13 +19,13 @@ class Bot:
     def Random_bot(self, board):
         
         if self.Check_board_full(board):
-            x = -1
-            y = -1
+            col = -1
+            row = -1
 
         else: 
             # Find available spots and pick one     
             indeces = np.argwhere(board == 0) 
-            x, y = random.choice(indeces)
-            print('bot move', x, y)
+            row, col = random.choice(indeces)
+            print('bot move', row, col)
 
-        return x, y
+        return row, col

@@ -65,7 +65,7 @@ class QGameboard(QtWidgets.QGraphicsView):
         
         return board
 
-    def Update_numpy_board(self, board, x, y, player='player1'):
+    def Update_numpy_board(self, board, col, row, player='player1'):
 
         if player == 'player2':
             code = 2
@@ -73,12 +73,12 @@ class QGameboard(QtWidgets.QGraphicsView):
             code = 1
         
         # Numpy begins with 0,0
-        board[x,y] = code
+        board[row,col] = code
 
         return board
 
-    def Legal_move(self, board, x, y):
-        if board[x, y] != 0:
+    def Legal_move(self, board, col, row):
+        if board[row, col] != 0:
             return False
         else: 
             return True
@@ -86,18 +86,18 @@ class QGameboard(QtWidgets.QGraphicsView):
     def Do_bot_move(self, bot_type, colour, player):
         # TODO: Provide the bot with a snapshot of the current board.
         
-        x, y = bot().Do_move(self.board, bot_type)   
+        row, col = bot().Do_move(self.board, bot_type)   
         
-        if x == -1:
+        if col == -1:
             print('No possible move. Array is full.')
 
         else:
-            location = f"{x}-{y}"
+            location = f"{row}-{col}"
             selected_tile = self.map_tile_by_coordinates[location]
             # Paint what is done
             self.Paint_tile(selected_tile, colour)
             # Update the numpy matrix
-            self.board = self.Update_numpy_board(self.board, x, y, player)
+            self.board = self.Update_numpy_board(self.board, col, row, player)
 
             if evaluate().Check_winning(self.board, 'bot'): # FIXME:
                 print('You have won!')
@@ -135,18 +135,17 @@ class QGameboard(QtWidgets.QGraphicsView):
         
 
         # List adjacent (and optionally colour them)
-        # self.Selection_adjacent_tiles()
+        # self.Selection_adjacent_tiles(new_selected_tile)
 
-        # Now the bot may move      
 
-    def Selection_adjacent_tiles(self):
+    def Selection_adjacent_tiles(self, tile):
 
         # get adjacent tiles
-        adjacent_tiles = self.Get_adjacent_tiles(self.selected_tile)
+        adjacent_tiles = self.Get_adjacent_tiles(tile)
 
         # paint adjacent tiles
-        # adjacent_brush = QtGui.QBrush(QtGui.QColor(0,0,255,255))
-        # self.Paint_graphic_items(adjacent_tiles, brush = adjacent_brush)
+        adjacent_brush = QtGui.QBrush(QtGui.QColor(0,0,255,255))
+        self.Paint_graphic_items(adjacent_tiles, brush = adjacent_brush)
 
         return adjacent_tiles
 
@@ -208,8 +207,8 @@ class QGameboard(QtWidgets.QGraphicsView):
                 """
 
                 tile = self.Add_shape_to_scene(row, column, pen, brush)
-
-                self.map_coordinates_by_tile[tile] = [row, column]
+                # Column = X, Row = Y coordinate.
+                self.map_coordinates_by_tile[tile] = [column, row] 
                 self.map_tile_by_coordinates[f"{row}-{column}"] = tile
 
                 column += 1
@@ -283,12 +282,13 @@ class QHexagonboard(QGameboard):
 
         # For our offset specific! (90 degree angle)
         adjacent_offset = [
-            [-1,0], # topleft
-            [-1,1], # topright
-            [0,1],  # right
-            [1,0],  # bottomright
-            [1,-1],  # bottomleft
-            [0,-1], # left
+            [0,-1], # topleft
+            [1,-1], # topright
+            [1,0],  # right
+            [0,1],  # bottomright
+            [-1,1],  # bottomleft
+            [-1,0], # left
+            
         ]
 
         for offset in adjacent_offset:
