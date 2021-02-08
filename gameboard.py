@@ -10,7 +10,7 @@ import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 # Class Imports
-from bot import Bot as bot
+from bot import Bot
 from evaluate import Evaluate
 
 class QGameboard(QtWidgets.QGraphicsView):
@@ -57,21 +57,33 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.red = [255,0,0]
         # Initialise the evaluate functions
         self.eval = Evaluate(self.board, self.adjacent_offset)
+        self.bot = Bot()
 
         # We can pitch two bots against eachother.
         if bot_match:
             while(True):
-                # Check per move if game is ended. If so, break the loop
-                if not self.eval.Check_ended(self.board):
-                    self.Do_bot_move('random', self.yellow, 'player1')
+                # If the board is not yet full, we can do a move
+                if not self.eval.Check_board_full(self.board):
+                    # Do move for first player
+                    self.board = self.Do_bot_move(self.board, 'random', self.yellow, 'player1')
+                    if self.eval.Check_winning(self.board, 'player1'):
+                        print('Player 1 has won!')
+                        break
                 else:
+                    print('Board is full!')
                     break
-                if not self.eval.Check_ended(self.board):
-                    self.Do_bot_move('random', self.red, 'player2')
+                # If player 1 did not win, check if the board is full
+                if not self.eval.Check_board_full(self.board):
+                    # Do move for first player
+                    self.board = self.Do_bot_move(self.board, 'random', self.red, 'player2')
+                    if self.eval.Check_winning(self.board, 'player2'):
+                        print('Player 2 has won!')
+                        break
                 else:
+                    print('Board is full!')
                     break
 
-            print('No moves possible, end of game.')
+            print('GAME OVER.')
 
     def Create_numpy_board(self, rows, columns):
         # FIXME: need to get the shape better. Always same num of rows & col
@@ -79,7 +91,7 @@ class QGameboard(QtWidgets.QGraphicsView):
         
         return board
 
-    def Update_numpy_board(self, board, col, row, player='player1'):
+    def Update_numpy_board(self, board, row, col, player='player1'):
 
         if player == 'player2':
             code = 2
@@ -91,16 +103,16 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         return board
 
-    def Legal_move(self, board, col, row):
+    def Legal_move(self, board, row, col):
         if board[row, col] != 0:
             return False
         else: 
             return True
 
-    def Do_bot_move(self, bot_type, colour, player):
+    def Do_bot_move(self, board, bot_type, colour, player):
         # TODO: Provide the bot with a snapshot of the current board.
         
-        row, col = bot().Do_move(self.board, bot_type)   
+        row, col = self.bot.Do_move(board, bot_type)   
         
         # if col == -1: DEPRECATED
         #     print('No possible move. Array is full.')
@@ -110,11 +122,10 @@ class QGameboard(QtWidgets.QGraphicsView):
         # Paint what is done
         self.Paint_tile(selected_tile, colour)
         # Update the numpy matrix
-        self.board = self.Update_numpy_board(self.board, col, row, player)
+        board = self.Update_numpy_board(board, row, col, player)
+        # TODO: less convoluted
+        return board
 
-        # # Check if game over TODO: this is convoluted DEPRECATED
-        # if self.eval.Check_ended(self.board):
-        #     print('Game over')
 
     def mousePressEvent(self, event):
         """This functions listens for mouse activity. Calls functions accordingly
@@ -123,36 +134,56 @@ class QGameboard(QtWidgets.QGraphicsView):
             event ([type]): mouse event
         """
 
-        print('-------------------')        
-        # get position (of pixel clicked)
+        print('***********************************')        
+        # Get position (of pixel clicked)
         position = self.mapToScene(event.pos())
-        # associated tile graphic_item
+        # Associated tile graphic_item
         new_selected_tile = self.scene.itemAt(position, QtGui.QTransform())
-
         # Update numpy board
-        coordinates = self.Get_tile_grid_location(new_selected_tile)
+        coordinates = self.Get_tile_grid_location(new_selected_tile)       
+
         print('coordinates', coordinates)
-        
 
-        
         # Check if move is legal: if yes, paint and let bot move
-        if self.Legal_move(self.board, coordinates[0], coordinates[1]):
-            print('Legal move.', coordinates)
-            self.Paint_tile(new_selected_tile, self.yellow)
-            self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1])
+        # if self.Legal_move(self.board, coordinates[0], coordinates[1]):
+        #     print('Legal move.', coordinates)
+        #     self.Paint_tile(new_selected_tile, self.yellow)
+        #     self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1])
             
-            # Check if game over
-            if self.eval.Check_ended(self.board):
-                print('THE GAME IS OVER: HUMAN WON')            
+        #     # Check if game over
+        #     if self.eval.Check_winning(self.board, 'player1'):
+        #         print('THE GAME IS OVER: HUMAN WON')            
             
-            self.Do_bot_move('random', self.red, 'player2')
-            # print(self.board)
+        #     self.Do_bot_move(self.board, 'random', self.red, 'player2')
+
+        #     if self.eval.Check_winning(self.board, 'player2'):
+        #         print('THE GAME IS OVER: BOT WON') 
+        #     # print(self.board)
+
+        if not self.eval.Check_board_full(self.board):
+            if self.Legal_move(self.board, coordinates[0], coordinates[1]):
+                print('Legal move.', coordinates)
+                self.Paint_tile(new_selected_tile, self.yellow)
+                self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1]) #TODO: row, col replace with tile
+                
+                # Check if game over
+                if self.eval.Check_winning(self.board, 'player1'):
+                    print('THE GAME IS OVER: HUMAN WON')            
+                
+                if not self.eval.Check_board_full(self.board):
+                    self.board = self.Do_bot_move(self.board, 'random', self.red, 'player2')
+
+                    if self.eval.Check_winning(self.board, 'player2'):
+                        print('THE GAME IS OVER: BOT WON') 
 
 
+        # else:
+        #     print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.', tile)
 
+            else:
+                print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.')
         else:
-            print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.')
-        
+            print('BOARD IS FULL')
 
         # List adjacent (and optionally colour them)
         # self.Selection_adjacent_tiles(new_selected_tile)
@@ -228,7 +259,7 @@ class QGameboard(QtWidgets.QGraphicsView):
 
                 tile = self.Add_shape_to_scene(row, column, pen, brush)
                 # Column = X, Row = Y coordinate.
-                self.map_coordinates_by_tile[tile] = [column, row] 
+                self.map_coordinates_by_tile[tile] = [row, column] 
                 self.map_tile_by_coordinates[f"{row}-{column}"] = tile
 
                 column += 1

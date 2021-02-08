@@ -51,24 +51,46 @@ class Evaluate:
 
         return tile_list
 
-    def Check_winning(self, board):
-        # return False
+    def Make_candidate_set(self, indeces, board, player_token):
+        # Find which one start at the top
+        node_list = []
+        
+        for tile in indeces:
+            row, col = tile
+        
+            if player_token == 1:
+                if row == 0:
+                    # Add these nodes to our node list
+                    print('candidate:', tile, board[row,col])
+                    node_list.append([row,col])
+
+            elif player_token == 2:
+                if col == 0:
+                    # Add these nodes to our node list
+                    print('candidate:', tile, board[row,col])
+                    node_list.append([row,col])                
+
+        return node_list
+
+    def Check_winning(self, board, player):
+        # Lists we need for recursion
         node_list = []
         visited_list = []
 
-        # Find all our squares
-        indeces = self.Make_coordinate_list(1, board)
+        # Player1 moves top to bottom, Player2 moves left to right
+        if player == 'player2':
+            player_token = 2
+        elif player == 'player1':
+            player_token = 1
 
-        # Find which one start at the top
-        for tile in indeces:
-            row, col = tile
-            if row == 0:
-                # Add these nodes to our node list
-                print('candidate:', tile, board[row,col])
-                node_list.append([row,col])
-        
+        # Find all our squares
+        indeces = self.Make_coordinate_list(player_token, board)
+
+        # Find all candidates according to the player token: player1 top-down, player2 left-right
+        node_list = self.Make_candidate_set(indeces, board, player_token)
+       
         # Now we have found all adjacent candidate tiles. Recursively search through these
-        self.Dig_down(node_list, board, visited_list)
+        self.Dig_down(node_list, board, player, visited_list)
         
         if self.found_winning:
             return True
@@ -77,7 +99,7 @@ class Evaluate:
 
 
 
-    def Dig_down(self, node_list, board, visited_list=[]):
+    def Dig_down(self, node_list, board, player, visited_list=[]):
         print('-------------')
         print('i got the following list to explore:', node_list)
         print('i already explored:', visited_list)
@@ -87,10 +109,14 @@ class Evaluate:
         # Exit clause: check if one of the tiles is at the bottom
         for tile in node_list:
 
-            if tile[0] == self.num_rows - 1:
+            print('data', tile[0], self.num_rows)
+
+            if player == 1 and tile[0] == self.num_rows - 1:
                 # We reached the end, winning position
                 self.found_winning = True
                 # exit(0)
+            elif player == 2 and tile[1] == self.num_cols - 1:
+                self.found_winning = True
 
         # Delete from the node_list those nodes we already visited
         node_list_copy = []
@@ -99,14 +125,6 @@ class Evaluate:
             if item not in visited_list:
                 node_list_copy.append(item)
             
-            # print('item listed', item)
-            # print('node list', node_list)
-            # print('visited_list', visited_list)
-            # if item in visited_list:
-            #     node_list_copy.remove(item)
-            #     print('to remove',item)
-            #     print('from', node_list_copy)
-
         node_list = node_list_copy
 
         print('now i need to explore', node_list)
@@ -129,24 +147,32 @@ class Evaluate:
             self.Dig_down(adjacent_list, board, visited_list)
 
 
-    def Check_ended(self, board):
-        """Checks first if the board is full. Then if a player has won. If none, returns false.
+    # def Check_ended(self, board, player='player1'): DEPRECATED
+    #     """Checks first if the board is full. Then if a player has won. If none, returns false.
 
-        Args:
-            board ([type]): [description]
+    #     Args:
+    #         board ([type]): [description]
 
-        Returns:
-            bools: True is game is finished, false otherwise.
-        """        
+    #     Returns:
+    #         bools: True is game is finished, false otherwise.
+    #     """        
+    #     if np.all(board):
+    #         # Every field filled
+    #         return True
+
+    #     elif self.Check_winning(board, player):
+    #         return True
+
+    #     else:
+    #         return False 
+
+    def Check_board_full(self, board):
+        #if np.count_nonzero(board==0) == 0:
         if np.all(board):
-            # Every field filled
+            # There are no zeroes on the board
             return True
-
-        elif self.Check_winning(board):
-            return True
-
         else:
-            return False 
+            return False
 
     def Diff(self, li1, li2):
         li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
