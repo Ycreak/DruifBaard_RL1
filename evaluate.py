@@ -1,4 +1,5 @@
 import numpy as np
+from itertools import chain
 
 class Evaluate:
 
@@ -6,10 +7,9 @@ class Evaluate:
 
         self.adjacent_offset = offset
 
-        self.num_rows = board.shape
-        self.num_cols = board.shape
+        self.num_rows, self.num_cols = board.shape
 
-        self.visited_tile_list = []
+        self.found_winning = False
 
     def Make_coordinate_list(self, value, array):        
         """Creates a list of all coordinates belonging to the given player
@@ -52,81 +52,82 @@ class Evaluate:
         return tile_list
 
     def Check_winning(self, board):
-        return False
-        
-        to_visit_list = []
-        
-        # TODO: do we want to specify which player, so we know what sides to check? (saves time)
-        
-        # TODO: we can perform a check: at least (2 * $dimension) stones need to be played for a line to exist
+        # return False
+        node_list = []
+        visited_list = []
 
-        # check if line exist top to bottom
-
+        # Find all our squares
         indeces = self.Make_coordinate_list(1, board)
 
-        # if len(indeces) < num_rows:
-        #     return False # One cannot win with so few stones
-        # else:
+        # Find which one start at the top
         for tile in indeces:
-            row, col = tile 
-            # print('tile', tile, board[row,col])
+            row, col = tile
             if row == 0:
-                # For every tile that is ours, we have a candidate, so lets go digging
+                # Add these nodes to our node list
                 print('candidate:', tile, board[row,col])
-                
-                # Add this candidate to the list of visited tiles
-                self.visited_tile_list.append([row,col])
-
-                # Find its adjacent tiles (that we have not visited yet)
-                to_visit_list.extend(self.Find_adjacent_candidate_tiles(board, row, col, 1))    
-
-                # Now, for each candidate, recursively dig down using the candidate and a visited list
-
-        print('to visit: ', to_visit_list)
-        print('visited:', self.visited_tile_list)
+                node_list.append([row,col])
         
         # Now we have found all adjacent candidate tiles. Recursively search through these
-        self.Dig_down(to_visit_list)
+        self.Dig_down(node_list, board, visited_list)
         
-        # exit(0)
-
-        # Now for every adjacent field, check if it contains a 1
-        # for new_tile in to_visit_list:
-        #     row, col = new_tile
-        #     self.Dig_down(row, col, num_rows, board)
+        if self.found_winning:
+            return True
+        else:
+            return False
 
 
 
+    def Dig_down(self, node_list, board, visited_list=[]):
+        print('-------------')
+        print('i got the following list to explore:', node_list)
+        print('i already explored:', visited_list)
 
-        return True
+        adjacent_list = []
+        # visited_list = []
+        # Exit clause: check if one of the tiles is at the bottom
+        for tile in node_list:
 
-
-
-    def Dig_down(self, to_visit_list):
-        new_to_visit_list = []
-
-        for tile in to_visit_list:
             if tile[0] == self.num_rows - 1:
                 # We reached the end, winning position
-                print('WINNING')
-                exit(0)
+                self.found_winning = True
+                # exit(0)
+
+        # Delete from the node_list those nodes we already visited
+        node_list_copy = []
         
-        # No winning position detected, find new candidates and do recursion
-        for tile in to_visit_list:
-            # Add this newly visited tile to visited list
-            self.visited_tile_list.append(tile)
-            new_to_visit_list.extend(self.Find_adjacent_candidate_tiles(board, tile[0], tile[1], 1))    
+        for item in node_list:
+            if item not in visited_list:
+                node_list_copy.append(item)
+            
+            # print('item listed', item)
+            # print('node list', node_list)
+            # print('visited_list', visited_list)
+            # if item in visited_list:
+            #     node_list_copy.remove(item)
+            #     print('to remove',item)
+            #     print('from', node_list_copy)
 
-            print('visited', self.visited_tile_list)
-            print('to visit list', new_to_visit_list)
+        node_list = node_list_copy
 
-            # new_to_visit_list = self.Diff(new_to_visit_list, self.visited_tile_list)
+        print('now i need to explore', node_list)
 
-            print('new2', new_to_visit_list)
+        # Loop through this list and do recursion        
+        for tile in node_list:
 
+            print('i am now visiting,',tile)
 
-            # exit(0)
-            # Subtract the already visited
+            adjacent_list = self.Find_adjacent_candidate_tiles(board, tile[0], tile[1], 1)
+
+            print('adjacent is', adjacent_list)
+            # Make sure that we have not yet visited these!
+            if tile not in visited_list:
+                visited_list.append(tile)
+
+            print('i already visited', visited_list)
+                       
+            # Dig down
+            self.Dig_down(adjacent_list, board, visited_list)
+
 
     def Check_ended(self, board):
         """Checks first if the board is full. Then if a player has won. If none, returns false.
@@ -146,3 +147,7 @@ class Evaluate:
 
         else:
             return False 
+
+    def Diff(self, li1, li2):
+        li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
+        return li_dif

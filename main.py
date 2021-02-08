@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
             layout.addWidget(w())
 
         layout.addWidget(QHexagonboard(
-            dimension = 6,
+            dimension = 11,
             bot_match = bot_match,
             ))
 

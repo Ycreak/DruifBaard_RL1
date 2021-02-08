@@ -60,9 +60,16 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         # We can pitch two bots against eachother.
         if bot_match:
-            while not self.eval.Check_ended(self.board):
-                self.Do_bot_move('random', self.yellow, 'player1')
-                self.Do_bot_move('random', self.red, 'player2')
+            while(True):
+                # Check per move if game is ended. If so, break the loop
+                if not self.eval.Check_ended(self.board):
+                    self.Do_bot_move('random', self.yellow, 'player1')
+                else:
+                    break
+                if not self.eval.Check_ended(self.board):
+                    self.Do_bot_move('random', self.red, 'player2')
+                else:
+                    break
 
             print('No moves possible, end of game.')
 
@@ -95,20 +102,19 @@ class QGameboard(QtWidgets.QGraphicsView):
         
         row, col = bot().Do_move(self.board, bot_type)   
         
-        if col == -1:
-            print('No possible move. Array is full.')
+        # if col == -1: DEPRECATED
+        #     print('No possible move. Array is full.')
 
-        else:
-            location = f"{row}-{col}"
-            selected_tile = self.map_tile_by_coordinates[location]
-            # Paint what is done
-            self.Paint_tile(selected_tile, colour)
-            # Update the numpy matrix
-            self.board = self.Update_numpy_board(self.board, col, row, player)
+        location = f"{row}-{col}"
+        selected_tile = self.map_tile_by_coordinates[location]
+        # Paint what is done
+        self.Paint_tile(selected_tile, colour)
+        # Update the numpy matrix
+        self.board = self.Update_numpy_board(self.board, col, row, player)
 
-            # Check if game over TODO: this is convoluted
-            if self.eval.Check_ended(self.board):
-                print('Game over')
+        # # Check if game over TODO: this is convoluted DEPRECATED
+        # if self.eval.Check_ended(self.board):
+        #     print('Game over')
 
     def mousePressEvent(self, event):
         """This functions listens for mouse activity. Calls functions accordingly
@@ -127,15 +133,18 @@ class QGameboard(QtWidgets.QGraphicsView):
         coordinates = self.Get_tile_grid_location(new_selected_tile)
         print('coordinates', coordinates)
         
-        # Check if game over
-        if self.eval.Check_ended(self.board):
-            print('Game over')
+
         
         # Check if move is legal: if yes, paint and let bot move
         if self.Legal_move(self.board, coordinates[0], coordinates[1]):
             print('Legal move.', coordinates)
             self.Paint_tile(new_selected_tile, self.yellow)
             self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1])
+            
+            # Check if game over
+            if self.eval.Check_ended(self.board):
+                print('THE GAME IS OVER: HUMAN WON')            
+            
             self.Do_bot_move('random', self.red, 'player2')
             # print(self.board)
 
