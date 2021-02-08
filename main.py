@@ -19,16 +19,10 @@ if __name__ == '__main__':
 
     # Parse command line arguments:
     p = argparse.ArgumentParser(description="Provide your parameters")
+    # Dimension of the board. Mandatory!
     p.add_argument("dimension", type=int, default=6,
-                help="input file with one verse of poetry per line. Optionally, the verse can be "
-                        "preceded by a unique index and a tab (set -input_index to True in this case)")
-    # p.add_argument("output", type=argparse.FileType("w"),
-    #             help="output file name (should end with .json)")
-    # p.add_argument("meter", type=str, choices=list(Meter.METERS.keys()),
-    #             help="meter to scan the text with")
-    # p.add_argument("-manual_file", type=str, default=None,
-    #             help="file from which to read manual scansions and to which to write lines that "
-    #                     "require manual scansions")
+                help="lorem ipsum")
+    # Whether we play bot match or not
     p.add_argument("--bot_match", type=bool, default=False, dest="bot_match",
                 help="if provided, a bot match will be started")
 
@@ -49,7 +43,7 @@ if __name__ == '__main__':
 
     main.setCentralWidget(QHexagonboard(
         dimension = args.dimension,
-        bot_match = bot_match,
+        bot_match = args.bot_match,
         ))
 
     main.show()

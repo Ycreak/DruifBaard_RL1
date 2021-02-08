@@ -8,6 +8,7 @@ import collections
 import random 
 import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
+from trueskill import Rating, quality_1vs1, rate_1vs1
 
 # Class Imports
 from bot import Bot
@@ -61,62 +62,116 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         # We can pitch two bots against eachother.
         if bot_match:
-            while(True):
-                # If the board is not yet full, we can do a move
-                if not self.eval.Check_board_full(self.board):
-                    # Do move for first player
-                    self.board = self.Do_bot_move(self.board, 'random', self.yellow, 'player1')
-                    if self.eval.Check_winning(self.board, 'player1'):
-                        print('Player 1 has won!')
-                        break
-                else:
-                    print('Board is full!')
-                    break
-                # If player 1 did not win, check if the board is full
-                if not self.eval.Check_board_full(self.board):
-                    # Do move for first player
-                    self.board = self.Do_bot_move(self.board, 'random', self.red, 'player2')
-                    if self.eval.Check_winning(self.board, 'player2'):
-                        print('Player 2 has won!')
-                        break
-                else:
-                    print('Board is full!')
-                    break
+            self.Play_bot_match()
 
-            print('GAME OVER.')
+    def Play_bot_match(self):
+        
+        bot1 = 'random'
+        bot2 = 'random'
+
+        rounds = 1
+        
+        r_bot1 = Rating(30)
+        r_bot2 = Rating(30)
+
+        while(True):
+            # If the board is not yet full, we can do a move
+            if not self.eval.Check_board_full(self.board):
+                # Do move for first player
+                self.board = self.Do_bot_move(self.board, bot1, self.yellow, 'player1')
+                if self.eval.Check_winning(self.board, 'player1'):
+                    print('Player 1 has won!')
+                    r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2)
+                    break
+            else:
+                print('Board is full!')
+                r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True)
+                break
+            # If player 1 did not win, check if the board is full
+            if not self.eval.Check_board_full(self.board):
+                # Do move for first player
+                self.board = self.Do_bot_move(self.board, bot2, self.red, 'player2')
+                if self.eval.Check_winning(self.board, 'player2'):
+                    print('Player 2 has won!')
+                    r_bot1, r_bot2 = rate_1vs1(r_bot2, r_bot1)
+                    break
+            else:
+                print('Board is full!')
+                r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True)
+                break
+
+        print('GAME OVER.')
+
+        print(r_bot1, r_bot2)
+
+        # exit(0)
 
     def Create_numpy_board(self, rows, columns):
-        # FIXME: need to get the shape better. Always same num of rows & col
+        """Creates numpy matrix that represents the board
+
+        Args:
+            rows (int): [description]
+            columns (int): [description]
+
+        Returns:
+            board: numpy array
+        """        
         board = np.zeros(shape=(rows + 1, columns + 1), dtype=int)
         
         return board
 
     def Update_numpy_board(self, board, row, col, player='player1'):
+        """Updates the numpy board with the given player token on the given location
 
+        Args:
+            board (numpy array): [description]
+            row (int): 
+            col (int): [description]
+            player (string, optional): [description]. Defaults to 'player1'.
+
+        Returns:
+            board: updated board with move made
+        """        
         if player == 'player2':
             code = 2
         else:
             code = 1
         
-        # Numpy begins with 0,0
         board[row,col] = code
 
         return board
 
     def Legal_move(self, board, row, col):
+        """Checks if the given move is possible
+
+        Args:
+            board (np array): [description]
+            row (int): [description]
+            col (int): [description]
+
+        Returns:
+            bool: whether the move is possible
+        """        
         if board[row, col] != 0:
             return False
         else: 
             return True
 
     def Do_bot_move(self, board, bot_type, colour, player):
-        # TODO: Provide the bot with a snapshot of the current board.
-        
+        """Handles everything regarding the moving of a bot: calls bot class, adds tile information
+        and paints the tile on the screen. Also updates the board and returns it with the new move.
+
+        Args:
+            board (np array): [description]
+            bot_type (string): describes what bot needs to move
+            colour (list): holds colour information in RGB
+            player (string): [description]
+
+        Returns:
+            board: updated board
+        """               
         row, col = self.bot.Do_move(board, bot_type)   
         
-        # if col == -1: DEPRECATED
-        #     print('No possible move. Array is full.')
-
         location = f"{row}-{col}"
         selected_tile = self.map_tile_by_coordinates[location]
         # Paint what is done
@@ -125,7 +180,6 @@ class QGameboard(QtWidgets.QGraphicsView):
         board = self.Update_numpy_board(board, row, col, player)
         # TODO: less convoluted
         return board
-
 
     def mousePressEvent(self, event):
         """This functions listens for mouse activity. Calls functions accordingly
@@ -142,23 +196,7 @@ class QGameboard(QtWidgets.QGraphicsView):
         # Update numpy board
         coordinates = self.Get_tile_grid_location(new_selected_tile)       
 
-        print('coordinates', coordinates)
-
-        # Check if move is legal: if yes, paint and let bot move
-        # if self.Legal_move(self.board, coordinates[0], coordinates[1]):
-        #     print('Legal move.', coordinates)
-        #     self.Paint_tile(new_selected_tile, self.yellow)
-        #     self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1])
-            
-        #     # Check if game over
-        #     if self.eval.Check_winning(self.board, 'player1'):
-        #         print('THE GAME IS OVER: HUMAN WON')            
-            
-        #     self.Do_bot_move(self.board, 'random', self.red, 'player2')
-
-        #     if self.eval.Check_winning(self.board, 'player2'):
-        #         print('THE GAME IS OVER: BOT WON') 
-        #     # print(self.board)
+        # print('coordinates', coordinates)
 
         if not self.eval.Check_board_full(self.board):
             if self.Legal_move(self.board, coordinates[0], coordinates[1]):
@@ -170,38 +208,24 @@ class QGameboard(QtWidgets.QGraphicsView):
                 if self.eval.Check_winning(self.board, 'player1'):
                     print('THE GAME IS OVER: HUMAN WON')            
                 
-                if not self.eval.Check_board_full(self.board):
+                elif not self.eval.Check_board_full(self.board):
                     self.board = self.Do_bot_move(self.board, 'random', self.red, 'player2')
 
                     if self.eval.Check_winning(self.board, 'player2'):
                         print('THE GAME IS OVER: BOT WON') 
-
-
-        # else:
-        #     print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.', tile)
 
             else:
                 print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.')
         else:
             print('BOARD IS FULL')
 
-        # List adjacent (and optionally colour them)
-        # self.Selection_adjacent_tiles(new_selected_tile)
-
-
-    def Selection_adjacent_tiles(self, tile):
-
-        # get adjacent tiles
-        adjacent_tiles = self.Get_adjacent_tiles(tile)
-
-        # paint adjacent tiles
-        adjacent_brush = QtGui.QBrush(QtGui.QColor(0,0,255,255))
-        self.Paint_graphic_items(adjacent_tiles, brush = adjacent_brush)
-
-        return adjacent_tiles
-
     def Paint_tile(self, tile, colour):
+        """Paints the tile provided the colour provided
 
+        Args:
+            tile ([type]): [description]
+            colour (list): [description]
+        """        
         r = colour[0]
         g = colour[1]
         b = colour[2]
@@ -210,10 +234,14 @@ class QGameboard(QtWidgets.QGraphicsView):
  
         self.Paint_graphic_items([tile], brush = brush)
 
-
     def wheelEvent(self, event):
+        """Allows for zoom in and out
 
-        # get delta of mousewheel scroll, default is 120 pixels, we devide by 1200 to return 0.10 to get the zoom factor
+        Args:
+            event ([type]): [description]
+        """        
+        # Get delta of mousewheel scroll, default is 120 pixels, we devide by 1200 to return 0.10 
+        # to get the zoom factor
         delta = event.angleDelta()
         self.deltaF = 1 + float(delta.y() / 1200)
         self.scale(self.deltaF, self.deltaF)

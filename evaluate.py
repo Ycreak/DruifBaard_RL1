@@ -52,7 +52,17 @@ class Evaluate:
         return tile_list
 
     def Make_candidate_set(self, indeces, board, player_token):
-        # Find which one start at the top
+        """Makes candidate set to start searching. For player1, we search from the top, for player2, 
+        we search from the left.
+
+        Args:
+            indeces (list): of tiles for given player
+            board (np array): [description]
+            player_token (int): encoding of given player
+
+        Returns:
+            list: of candidate nodes for the respective player
+        """        
         node_list = []
         
         for tile in indeces:
@@ -73,7 +83,9 @@ class Evaluate:
         return node_list
 
     def Check_winning(self, board, player):
-        # Lists we need for recursion
+
+        print('Checking win condition for:', player)
+        
         node_list = []
         visited_list = []
 
@@ -82,6 +94,8 @@ class Evaluate:
             player_token = 2
         elif player == 'player1':
             player_token = 1
+        else:
+            print('player except:',player)
 
         # Find all our squares
         indeces = self.Make_coordinate_list(player_token, board)
@@ -90,7 +104,7 @@ class Evaluate:
         node_list = self.Make_candidate_set(indeces, board, player_token)
        
         # Now we have found all adjacent candidate tiles. Recursively search through these
-        self.Dig_down(node_list, board, player, visited_list)
+        self.Dig_down(node_list, board, player_token, visited_list)
         
         if self.found_winning:
             return True
@@ -100,6 +114,8 @@ class Evaluate:
 
 
     def Dig_down(self, node_list, board, player, visited_list=[]):
+        # THIS FUNCTION NEEDS TO BE REDONE COMPLETELY.
+        
         print('-------------')
         print('i got the following list to explore:', node_list)
         print('i already explored:', visited_list)
@@ -109,7 +125,7 @@ class Evaluate:
         # Exit clause: check if one of the tiles is at the bottom
         for tile in node_list:
 
-            print('data', tile[0], self.num_rows)
+            print('data', player, tile[0], self.num_rows - 1)
 
             if player == 1 and tile[0] == self.num_rows - 1:
                 # We reached the end, winning position
@@ -134,7 +150,7 @@ class Evaluate:
 
             print('i am now visiting,',tile)
 
-            adjacent_list = self.Find_adjacent_candidate_tiles(board, tile[0], tile[1], 1)
+            adjacent_list = self.Find_adjacent_candidate_tiles(board, tile[0], tile[1], player)
 
             print('adjacent is', adjacent_list)
             # Make sure that we have not yet visited these!
@@ -144,36 +160,21 @@ class Evaluate:
             print('i already visited', visited_list)
                        
             # Dig down
-            self.Dig_down(adjacent_list, board, visited_list)
+            self.Dig_down(adjacent_list, board, player, visited_list)
 
 
-    # def Check_ended(self, board, player='player1'): DEPRECATED
-    #     """Checks first if the board is full. Then if a player has won. If none, returns false.
-
-    #     Args:
-    #         board ([type]): [description]
-
-    #     Returns:
-    #         bools: True is game is finished, false otherwise.
-    #     """        
-    #     if np.all(board):
-    #         # Every field filled
-    #         return True
-
-    #     elif self.Check_winning(board, player):
-    #         return True
-
-    #     else:
-    #         return False 
 
     def Check_board_full(self, board):
-        #if np.count_nonzero(board==0) == 0:
+        """Simple function to check whether the board is full
+
+        Args:
+            board (np array): [description]
+
+        Returns:
+            bool: whether board is filled with all but zeroes
+        """        
         if np.all(board):
             # There are no zeroes on the board
             return True
         else:
             return False
-
-    def Diff(self, li1, li2):
-        li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
-        return li_dif
