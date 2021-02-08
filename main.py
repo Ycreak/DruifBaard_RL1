@@ -11,9 +11,77 @@
 import sys
 import argparse
 
-from PyQt5 import QtWidgets, QtGui, QtCore
+# from PyQt5 import QtWidgets, QtGui, QtCore
+
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
+# from PyQt5.QtWidgets import QApplication,QLineEdit,QWidget,QFormLayout
+# from PyQt5.QtGui import QIntValidator,QDoubleValidator,QFont
+# from PyQt5.QtCore import Qt
+
+import sys
 
 from gameboard import QHexagonboard
+
+# Subclass QMainWindow to customise your application's main window
+class MainWindow(QMainWindow):
+
+    def __init__(self, *args, **kwargs):
+        super(MainWindow, self).__init__(*args, **kwargs)
+
+        self.setWindowTitle("Hex")
+
+
+        layout = QVBoxLayout()
+        widgets = [
+            QCheckBox,
+            # QComboBox,
+            # QDateEdit,
+            # QDateTimeEdit,
+            # QDial,
+            # QDoubleSpinBox,
+            # QFontComboBox,
+            # QLCDNumber,
+            # QLabel,
+            # QLineEdit,
+            # QProgressBar,
+            # QPushButton,
+            QRadioButton,
+            # QSlider,
+            # QSpinBox,
+            # QTimeEdit
+            ]
+
+        for w in widgets:
+            layout.addWidget(w())
+
+        layout.addWidget(QHexagonboard(
+            dimension = 6,
+            bot_match = bot_match,
+            ))
+
+    #     widget = QCheckBox()
+    #     widget.setCheckState(Qt.Checked)
+
+    #     # For tristate: widget.setCheckState(Qt.PartiallyChecked)
+    #     # Or: widget.setTriState(True)
+    #     widget.stateChanged.connect(self.show_state)
+
+    #     self.setCentralWidget(widget)
+
+
+    # def show_state(self, s):
+    #     print(s == Qt.Checked)
+    #     print(s)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        # Set the central widget of the Window. Widget will expand
+        # to take up all the space in the window by default.
+        self.setCentralWidget(widget)
 
 if __name__ == '__main__':
 
@@ -40,18 +108,31 @@ if __name__ == '__main__':
     else:
         bot_match = False
     
-    # Qt Application
-    global app
-    app = QtWidgets.QApplication(sys.argv)
-    
-    global main
-    main = QtWidgets.QMainWindow()
+    app = QApplication(sys.argv)
 
-    main.setCentralWidget(QHexagonboard(
-        dimension = args.dimension,
-        bot_match = bot_match,
-        ))
+    window = MainWindow()
 
-    main.show()
-    sys.exit(app.exec_())
+
+
+    window.show() # IMPORTANT!!!!! Windows are hidden by default.
+
+    # Start the event loop.
+    app.exec_()
+
+
+
+        # # Qt Application
+        # global app
+        # app = QtWidgets.QApplication(sys.argv)
+        
+        # global main
+        # main = QtWidgets.QMainWindow()
+        # main.setWindowTitle("QLineEdit Example")
+        # main.setCentralWidget(QHexagonboard(
+        #     dimension = args.dimension,
+        #     bot_match = bot_match,
+        #     ))
+
+        # main.show()
+        # sys.exit(app.exec_())
 
