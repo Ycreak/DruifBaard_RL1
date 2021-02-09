@@ -13,7 +13,8 @@ import argparse
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from gameboard import QGameboard
+# from gameboard import QGameboard
+from game import Game
 
 if __name__ == '__main__':
 
@@ -24,7 +25,7 @@ if __name__ == '__main__':
     global main
     main = QtWidgets.QMainWindow()
 
-    main.setCentralWidget(QGameboard(
+    main.setCentralWidget(Game(
         # Parameters
         ))
 
