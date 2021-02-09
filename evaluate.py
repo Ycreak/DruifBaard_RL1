@@ -11,6 +11,8 @@ class Evaluate:
 
         self.found_winning = False
 
+        self.debugging = False
+
     def Make_coordinate_list(self, value, array):        
         """Creates a list of all coordinates belonging to the given player
 
@@ -71,20 +73,23 @@ class Evaluate:
             if player_token == 1:
                 if row == 0:
                     # Add these nodes to our node list
-                    print('candidate:', tile, board[row,col])
+                    if self.debugging: 
+                        print('candidate:', tile, board[row,col])
                     node_list.append([row,col])
 
             elif player_token == 2:
                 if col == 0:
                     # Add these nodes to our node list
-                    print('candidate:', tile, board[row,col])
+                    if self.debugging: 
+                        print('candidate:', tile, board[row,col])
                     node_list.append([row,col])                
 
         return node_list
 
     def Check_winning(self, board, player):
 
-        print('Checking win condition for:', player)
+        if self.debugging: 
+            print('Checking win condition for:', player)
         
         node_list = []
         visited_list = []
@@ -95,7 +100,8 @@ class Evaluate:
         elif player == 'player1':
             player_token = 1
         else:
-            print('player except:',player)
+            if self.debugging: 
+                print('player except:',player)
 
         # Find all our squares
         indeces = self.Make_coordinate_list(player_token, board)
@@ -116,16 +122,18 @@ class Evaluate:
     def Dig_down(self, node_list, board, player, visited_list=[]):
         # THIS FUNCTION NEEDS TO BE REDONE COMPLETELY.
         
-        print('-------------')
-        print('i got the following list to explore:', node_list)
-        print('i already explored:', visited_list)
+        if self.debugging: 
+            print('-------------')
+            print('i got the following list to explore:', node_list)
+            print('i already explored:', visited_list)
 
         adjacent_list = []
         # visited_list = []
         # Exit clause: check if one of the tiles is at the bottom
         for tile in node_list:
 
-            print('data', player, tile[0], self.num_rows - 1)
+            if self.debugging: 
+                print('data', player, tile[0], self.num_rows - 1)
 
             if player == 1 and tile[0] == self.num_rows - 1:
                 # We reached the end, winning position
@@ -143,21 +151,25 @@ class Evaluate:
             
         node_list = node_list_copy
 
-        print('now i need to explore', node_list)
+        if self.debugging: 
+            print('now i need to explore', node_list)
 
         # Loop through this list and do recursion        
         for tile in node_list:
 
-            print('i am now visiting,',tile)
+            if self.debugging: 
+                print('i am now visiting,',tile)
 
             adjacent_list = self.Find_adjacent_candidate_tiles(board, tile[0], tile[1], player)
 
-            print('adjacent is', adjacent_list)
+            if self.debugging: 
+                print('adjacent is', adjacent_list)
             # Make sure that we have not yet visited these!
             if tile not in visited_list:
                 visited_list.append(tile)
 
-            print('i already visited', visited_list)
+            if self.debugging: 
+                print('i already visited', visited_list)
                        
             # Dig down
             self.Dig_down(adjacent_list, board, player, visited_list)

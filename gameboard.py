@@ -20,12 +20,25 @@ class QGameboard(QtWidgets.QGraphicsView):
     Args:
         QtWidgets (QtWidget): Screen stuff handle thingy.
     """    
-    def __init__(self, dimension, bot_match = False, size = 4):
+    def __init__(self):
         QtWidgets.QGraphicsView.__init__(self)
+
+        # Game Parameters
+        self.board_dimension = 6
+        # Whether two bots play or human vs ai
+        self.bot_match = True
+        # Algorithms for the bots
+        self.bot1 = 'random'
+        self.bot2 = 'random'
+        # Whether we have a tourney
+        self.tourney = True
+        self.tourney_rounds = 5
+        # Print parameters on screen
+        self.Print_parameters()
         # Board parameters. Provided by the class caller (main.py).
-        self.rows = dimension
-        self.columns = dimension
-        self.size = size
+        self.rows = self.board_dimension
+        self.columns = self.board_dimension
+        self.size = 4
         # Default parameters
         self.deltaF = 1.0 # Used in WheelEvent
         self.center = None # Used to put hexagons relatively on the screen
@@ -52,7 +65,6 @@ class QGameboard(QtWidgets.QGraphicsView):
         ]
         # Data for bots
         self.board = self.Create_numpy_board(self.rows, self.columns)
-        self.bot_match = bot_match
         # Colours
         self.yellow = [255,255,0]
         self.red = [255,0,0]
@@ -60,51 +72,96 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.eval = Evaluate(self.board, self.adjacent_offset)
         self.bot = Bot()
 
+        # Now, according to the given parameters, do the following:
+
         # We can pitch two bots against eachother.
-        if bot_match:
-            self.Play_bot_match()
+        if self.bot_match:
+            # Now check if we are playing a tourney
+            if self.tourney:
+                self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2, self.board)
+            else:
+                # Play a simple both match for testing
+                outcome = self.Play_bot_match(self.bot1, self.bot2, self.board)
+                if outcome == 0:
+                    print('Draw')
+                elif outcome == 1:
+                    print('Bot1 won')
+                elif outcome == 2:
+                    print('Bot2 won')               
+        # Else do nothing and just wait for mouse events (handled by mousePressEvent)
 
-    def Play_bot_match(self):
-        
-        bot1 = 'random'
-        bot2 = 'random'
+    def Play_bot_tourney(self, rounds, bot1, bot2, board):
+        # Stats
+        draws = 0
+        bot1_wins = 0
+        bot2_wins = 0
 
-        rounds = 1
-        
-        r_bot1 = Rating(30)
-        r_bot2 = Rating(30)
+        # Starting TrueSkill rating
+        r_bot1 = Rating(25)
+        r_bot2 = Rating(25)
 
+        # Lets play a few rounds
+        for _ in range(rounds):
+            outcome = self.Play_bot_match(self.bot1, self.bot2, self.board)
+
+            if outcome == 0:
+                draws += 1
+                r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True) # it is a draw
+
+            elif outcome == 1:
+                bot1_wins += 1
+                r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2)
+
+            elif outcome == 2:
+                bot2_wins += 1
+                r_bot1, r_bot2 = rate_1vs1(r_bot2, r_bot1)
+
+        print('\nNumber of rounds played:', rounds)
+        print('Bot1 wins:', bot1_wins, '\nBot2 wins:', bot2_wins, '\nDraws:', draws)
+        print('\nRating bot 1:', r_bot1.trueskill.Rating)
+        print('Rating bot 2:', r_bot2)
+
+    def Play_bot_match(self, bot1, bot2, board):
+        """Plays a botmatch between the two provided bots. Returns the outcome of the game. 0 means draw,
+        1 means bot1 won, 2 means bot 2 won.
+
+        Args:
+            bot1 (string): bot type
+            bot2 (string): bot type
+            board (np array): [description]
+
+        Returns:
+            int: describing who won
+        """        
         while(True):
             # If the board is not yet full, we can do a move
             if not self.eval.Check_board_full(self.board):
                 # Do move for first player
                 self.board = self.Do_bot_move(self.board, bot1, self.yellow, 'player1')
                 if self.eval.Check_winning(self.board, 'player1'):
-                    print('Player 1 has won!')
-                    r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2)
+                    # print('Player 1 has won!')
+                    outcome = 1
                     break
             else:
-                print('Board is full!')
-                r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True)
+                # print('Board is full!')
+                outcome = 0
                 break
             # If player 1 did not win, check if the board is full
             if not self.eval.Check_board_full(self.board):
                 # Do move for first player
                 self.board = self.Do_bot_move(self.board, bot2, self.red, 'player2')
                 if self.eval.Check_winning(self.board, 'player2'):
-                    print('Player 2 has won!')
-                    r_bot1, r_bot2 = rate_1vs1(r_bot2, r_bot1)
+                    # print('Player 2 has won!')
+                    outcome = 2
                     break
             else:
-                print('Board is full!')
-                r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True)
+                # print('Board is full!')
+                outcome = 0
                 break
 
-        print('GAME OVER.')
+        # print('GAME OVER.')
 
-        print(r_bot1, r_bot2)
-
-        # exit(0)
+        return outcome
 
     def Create_numpy_board(self, rows, columns):
         """Creates numpy matrix that represents the board
@@ -169,7 +226,8 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         Returns:
             board: updated board
-        """               
+        """           
+
         row, col = self.bot.Do_move(board, bot_type)   
         
         location = f"{row}-{col}"
@@ -233,6 +291,9 @@ class QGameboard(QtWidgets.QGraphicsView):
         brush = QtGui.QBrush(QtGui.QColor(r,g,b,255))
  
         self.Paint_graphic_items([tile], brush = brush)
+
+    def Print_parameters(self):
+        print(self.bot1, 'bot versus', self.bot2, 'bot')
 
     def wheelEvent(self, event):
         """Allows for zoom in and out
@@ -316,9 +377,9 @@ class QGameboard(QtWidgets.QGraphicsView):
         
         graphic_item.update()     
        
-class QHexagonboard(QGameboard):
-    def __init__(self, dimension, bot_match = False, size = 4):
-        super().__init__(dimension, bot_match, size)
+# class QHexagonboard(QGameboard):
+#     def __init__(self, dimension, bot_match, bot1, bot2, tourney, tourney_rounds):
+#         super().__init__(dimension, bot_match, bot1, bot2, tourney, tourney_rounds)
 
     def Add_shape_to_scene(self, row, column, pen, brush):
 
