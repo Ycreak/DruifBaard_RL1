@@ -6,7 +6,7 @@
 # Luuk Nolden S1370898
 
 # RUN AS FOLLOWS:
-#   $ python3 main.py <dimension> <--bot_match true>
+#   $ python3 main.py
 
 import sys
 import argparse
