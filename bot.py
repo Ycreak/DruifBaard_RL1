@@ -26,7 +26,7 @@ class Bot:
         return row, col
 
     def Dijkstra_bot(self, board, search_depth):
-
+        # test
         return
 
     def Mcts_bot(self, board):
