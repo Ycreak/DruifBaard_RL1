@@ -2,7 +2,7 @@
 # Leiden University 2021
 # Assignment 1
 # Philippe Bors S1773585
-# Job van der Zwaag S1? :O
+# Job van der Zwaag S1893378
 # Luuk Nolden S1370898
 
 # RUN AS FOLLOWS:
