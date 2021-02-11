@@ -30,12 +30,15 @@ class Bot:
     def Alpha_Beta_bot(self, board, search_depth):
         
         copyboard = copy.deepcopy(board)
-        value, option = self.minimax(copyboard, search_depth, True)
+        alpha = float('-inf')
+        beta = float('inf')
+        value, option = self.minimax(copyboard, search_depth, alpha, beta, True)
         print(option)
         print(value)
-        return option
+        row, col = option
+        return row, col
 
-    def minimax(self, board, depth, max_player):
+    def minimax(self, board, depth, alpha, beta, max_player):
 
         if depth == 0 or np.all(board): #or wining state
             value = self.evaluate(board)
@@ -48,29 +51,37 @@ class Bot:
             options = np.argwhere(board == 0) 
             for option in options:
                 copyboard = copy.deepcopy(board)
-                copyboard[option] = 1
-                value, child = self.minimax(copyboard, depth-1, False)
+                row, col = option
+                copyboard[row, col] = 2
+                value, child = self.minimax(copyboard, depth-1, alpha, beta, False)
                 if value > max_value:
                     max_value = value
                     max_child = option
+                alpha = max(alpha, value)
+                if beta <= alpha:
+                    break
             return max_value, max_child
-
+        
         else: 
             min_value = float('inf')
             min_child = [-1,-1]
             options = np.argwhere(board == 0) 
             for option in options:
                 copyboard = copy.deepcopy(board)
-                copyboard[option] = 2
-                value, child = self.minimax(copyboard, depth-1, True)
+                row, col = option
+                copyboard[row, col] = 1
+                value, child = self.minimax(copyboard, depth-1, alpha, beta, True)
                 if value < min_value:
                     min_value = value
                     min_child = option
+                beta = min(beta, value)
+                if beta <= alpha:
+                    break
             return min_value, min_child
 
     def evaluate(self, board):
 
-        return randrange(-10,10)
+        return randrange(-100,100)
 
     def Mcts_bot(self, board):
 
