@@ -28,31 +28,32 @@ class Bot:
         return row, col
 
     def Alpha_Beta_bot(self, board, search_depth):
-        
         copyboard = copy.deepcopy(board)
         alpha = float('-inf')
         beta = float('inf')
         value, option = self.minimax(copyboard, search_depth, alpha, beta, True)
-        print(option)
-        print(value)
         row, col = option
         return row, col
 
     def minimax(self, board, depth, alpha, beta, max_player):
-
         if depth == 0 or np.all(board): #or wining state
             value = self.evaluate(board)
             child = [-1,-1]
             return value, child
-        
+    
+        options = np.argwhere(board == 0)
+        if int((options.size/2)) % 2 == 1:
+            playernumber = 1
+        else:
+            playernumber = 2
+
         if(max_player):
             max_value = float('-inf')
             max_child = [-1,-1]
-            options = np.argwhere(board == 0) 
             for option in options:
                 copyboard = copy.deepcopy(board)
                 row, col = option
-                copyboard[row, col] = 2
+                copyboard[row, col] = playernumber
                 value, child = self.minimax(copyboard, depth-1, alpha, beta, False)
                 if value > max_value:
                     max_value = value
@@ -65,11 +66,10 @@ class Bot:
         else: 
             min_value = float('inf')
             min_child = [-1,-1]
-            options = np.argwhere(board == 0) 
             for option in options:
                 copyboard = copy.deepcopy(board)
                 row, col = option
-                copyboard[row, col] = 1
+                copyboard[row, col] = playernumber
                 value, child = self.minimax(copyboard, depth-1, alpha, beta, True)
                 if value < min_value:
                     min_value = value
