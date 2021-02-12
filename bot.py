@@ -28,10 +28,20 @@ class Bot:
         return row, col
 
     def Alpha_Beta_bot(self, board, search_depth):
+        
+        self.dijkstra(board)
+
+        empty_tiles = np.argwhere(board == 0)
+        if int((empty_tiles.size/2)) % 2 == 1:
+            player = True
+        else:
+            player = False
+        
         copyboard = copy.deepcopy(board)
         alpha = float('-inf')
         beta = float('inf')
-        value, option = self.minimax(copyboard, search_depth, alpha, beta, True)
+        value, option = self.minimax(copyboard, search_depth, alpha, beta, player)
+
         row, col = option
         return row, col
 
@@ -41,19 +51,14 @@ class Bot:
             child = [-1,-1]
             return value, child
     
-        options = np.argwhere(board == 0)
-        if int((options.size/2)) % 2 == 1:
-            playernumber = 1
-        else:
-            playernumber = 2
-
         if(max_player):
             max_value = float('-inf')
             max_child = [-1,-1]
+            options = np.argwhere(board == 0)
             for option in options:
                 copyboard = copy.deepcopy(board)
                 row, col = option
-                copyboard[row, col] = playernumber
+                copyboard[row, col] = 1
                 value, child = self.minimax(copyboard, depth-1, alpha, beta, False)
                 if value > max_value:
                     max_value = value
@@ -66,10 +71,11 @@ class Bot:
         else: 
             min_value = float('inf')
             min_child = [-1,-1]
+            options = np.argwhere(board == 0)
             for option in options:
                 copyboard = copy.deepcopy(board)
                 row, col = option
-                copyboard[row, col] = playernumber
+                copyboard[row, col] = 2
                 value, child = self.minimax(copyboard, depth-1, alpha, beta, True)
                 if value < min_value:
                     min_value = value
@@ -82,6 +88,22 @@ class Bot:
     def evaluate(self, board):
 
         return randrange(-100,100)
+
+    def dijkstra(self, board):
+        print("\n")
+
+        table = {'L': [0, 0]}
+
+        for tile in np.argwhere(board == 0):
+            table[tile].extend([float('inf'), 0])
+        
+        for tile in np.argwhere(board == 1):
+            table[tile].extend([float('inf'), 0])
+
+        #for tile in table:
+        #    print(tile.key)
+
+        return
 
     def Mcts_bot(self, board):
 
