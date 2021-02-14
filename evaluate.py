@@ -87,6 +87,73 @@ class Evaluate:
         return node_list
 
     def Check_winning(self, board, player):
+        if player == 'player2':
+            taken2 = []
+            for tile in np.argwhere(board == 2):
+                row, col = tile
+                taken2.append([row, col])
+            return self.wining_state(taken2, 2)
+        else:
+            taken1 = []
+            for tile in np.argwhere(board == 1):
+                row, col = tile
+                taken1.append([row, col])
+            return self.wining_state(taken1, 1)
+    
+    def wining_state(self, taken, player_number):
+        width = 4 #Should be taken from rest of program
+
+        adjacent_offset = [
+            [0, -1], # topleft
+            [1, -1], # topright
+            [1, 0],  # right
+            [0, 1],  # bottomright
+            [-1, 1],  # bottomleft
+            [-1, 0], # left     
+        ]
+
+        unvisited = []
+        visited = []
+        contains_begin = False
+        contains_end = False
+
+        for item in taken:
+            row, col = item
+            if player_number == 2:
+                if col == 0:
+                    unvisited.append(item)
+                    contains_begin = True
+                if col == width -1:
+                    contains_end = True
+            else:
+                if row == 0:
+                    unvisited.append(item)
+                    contains_begin = True
+                if row == width -1:
+                    contains_end = True
+
+        if not contains_begin or not contains_end:
+            return False
+
+        while unvisited:
+            item = unvisited.pop()
+            visited.append(item)
+            for offset in adjacent_offset:
+                adjacent_coordinate = [item[0] + offset[0], item[1] + offset[1]]
+                if adjacent_coordinate not in visited:
+                    if adjacent_coordinate in taken:
+                        row, col = adjacent_coordinate
+                        unvisited.append(adjacent_coordinate)
+                        if player_number == 2:
+                            if col == width -1:
+                                return True
+                        else:
+                            if row == width -1:
+                                return True
+        
+        return False
+
+    def Check_winning2(self, board, player):
 
         if self.debugging: 
             print('Checking win condition for:', player)

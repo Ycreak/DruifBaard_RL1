@@ -7,12 +7,12 @@ class Bot:
     # def __init__(self):
         # print('bliep bloop')
 
-    def Do_move(self, board, bot_type, search_depth):
+    def Do_move(self, board, bot_type, search_depth, use_Dijkstra):
         
         if bot_type == 'random':
             return self.Random_bot(board, search_depth)
         elif bot_type == 'alphabeta':
-            return self.Alpha_Beta_bot(board, search_depth)
+            return self.Alpha_Beta_bot(board, search_depth, use_Dijkstra)
         elif bot_type == 'mcts':
             return self.Mcts_bot(board)
         else:
@@ -27,9 +27,7 @@ class Bot:
 
         return row, col
 
-    def Alpha_Beta_bot(self, board, search_depth):
-        
-        self.dijkstra(board)
+    def Alpha_Beta_bot(self, board, search_depth, use_Dijkstra):    
 
         empty_tiles = np.argwhere(board == 0)
         if int((empty_tiles.size/2)) % 2 == 1:
@@ -40,26 +38,40 @@ class Bot:
         copyboard = copy.deepcopy(board)
         alpha = float('-inf')
         beta = float('inf')
-        value, option = self.minimax(copyboard, search_depth, alpha, beta, player)
+        value, option = self.minimax(copyboard, search_depth, alpha, beta, player, use_Dijkstra)
 
         row, col = option
         return row, col
 
-    def minimax(self, board, depth, alpha, beta, max_player):
-        if depth == 0 or np.all(board): #or wining state
-            value = self.evaluate(board)
-            child = [-1,-1]
+    def minimax(self, board, depth, alpha, beta, max_player, use_Dijkstra):
+        
+        if np.all(board):
+            child = [-700, -700]
+            return 0, child
+
+        winner = self.check_wining(board)
+        if winner == 1:
+            child = [-800, -800]
+            return 800, child
+
+        if winner == 2:
+            child = [-900, -900]
+            return -800, child
+
+        if depth == 0:
+            value = self.evaluate(board, use_Dijkstra)
+            child = [-100, -100]
             return value, child
-    
+        
         if(max_player):
             max_value = float('-inf')
-            max_child = [-1,-1]
+            max_child = [-200, -200]
             options = np.argwhere(board == 0)
             for option in options:
                 copyboard = copy.deepcopy(board)
                 row, col = option
                 copyboard[row, col] = 1
-                value, child = self.minimax(copyboard, depth-1, alpha, beta, False)
+                value, child = self.minimax(copyboard, depth-1, alpha, beta, False, use_Dijkstra)
                 if value > max_value:
                     max_value = value
                     max_child = option
@@ -70,40 +82,198 @@ class Bot:
         
         else: 
             min_value = float('inf')
-            min_child = [-1,-1]
+            min_child = [-300, -300]
             options = np.argwhere(board == 0)
             for option in options:
                 copyboard = copy.deepcopy(board)
                 row, col = option
                 copyboard[row, col] = 2
-                value, child = self.minimax(copyboard, depth-1, alpha, beta, True)
+                value, child = self.minimax(copyboard, depth-1, alpha, beta, True, use_Dijkstra)
                 if value < min_value:
                     min_value = value
                     min_child = option
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
+            row, col = min_child
             return min_value, min_child
 
-    def evaluate(self, board):
-
-        return randrange(-100,100)
+    def evaluate(self, board, use_Dijkstra):
+        if use_Dijkstra:
+            value = self.dijkstra(board)            
+            return self.dijkstra(board)
+        else:
+            return randrange(-10, 10)
 
     def dijkstra(self, board):
-        print("\n")
 
-        table = {'L': [0, 0]}
+        width = 4 #Should be taken from rest of program
+        #Begin point [-5, -5]
+        #End point   [-10, -10]
+
+        shortest_path = {}
+        shortest_path[-5, -5] = 0
+        taken = []
+        visited = []
+        unvisited = [[-5, -5]]
+        adjacent = {}
+        adjacent[-5, -5] = []
+        adjacent[-10, -10] = []
 
         for tile in np.argwhere(board == 0):
-            table[tile].extend([float('inf'), 0])
+            row, col = tile
+            shortest_path[row, col] = float('inf')
+            unvisited.append([row, col])
+            adjacent[row, col] = []
+            if(row == 0):
+                adjacent[-5, -5].append([row, col])
+                adjacent[row, col].append([-5, -5])
+            if(row == width-1):
+                adjacent[-10, -10].append([row, col])
+                adjacent[row, col].append([-10, -10])
         
         for tile in np.argwhere(board == 1):
-            table[tile].extend([float('inf'), 0])
+            row, col = tile
+            shortest_path[row, col] = float('inf')
+            unvisited.append([row, col])
+            adjacent[row, col] = []
+            taken.append([row, col])
+            if(row == 0):
+                adjacent[-5, -5].append([row, col])
+                adjacent[row, col].append([-5, -5])
+            if(row == width-1):
+                adjacent[-10, -10].append([row, col])
+                adjacent[row, col].append([-10, -10])
+        
+        shortest_path[-10, -10] = float('inf')
+        unvisited.append([-10, -10])
 
-        #for tile in table:
-        #    print(tile.key)
+        adjacent = self.get_adjacent_tiles(adjacent, unvisited)
 
-        return
+        while unvisited:
+            min_value = float('inf')
+            min_item = [-400, -400]
+            for item in unvisited:
+                row, col = item
+                value = shortest_path[row, col]
+                if value < min_value:
+                    min_value = value
+                    min_item = item
+            
+            if min_item == [-400, -400]:
+                break
+
+            min_row, min_col = min_item
+            path_to_min_item = shortest_path[min_row, min_col]
+            adjacent_to_min = adjacent[min_row, min_col]
+            for adjacent_item in adjacent_to_min:
+                adjacent_row, adjacent_col = adjacent_item
+                new_path = path_to_min_item + 1
+                if adjacent_item in taken:
+                    new_path = new_path - 1
+                if new_path < shortest_path[adjacent_row, adjacent_col]:
+                    shortest_path[adjacent_row, adjacent_col] = new_path
+            
+            unvisited.remove(min_item)
+            visited.append(min_item)
+
+        return shortest_path[-10, -10]
+    
+    def get_adjacent_tiles(self, adjacent, list_of_items):
+
+        adjacent_offset = [
+            [0, -1], # topleft
+            [1, -1], # topright
+            [1, 0],  # right
+            [0, 1],  # bottomright
+            [-1, 1],  # bottomleft
+            [-1, 0], # left     
+        ]
+
+        for item in adjacent:
+            row, col = item
+            coordinate = [row, col]
+
+            for offset in adjacent_offset:
+                adjacent_coordinate = [coordinate[0] + offset[0], coordinate[1] + offset[1]]
+                if adjacent_coordinate in list_of_items:
+                    adjacent[item].append(adjacent_coordinate)
+        
+        return adjacent
+
+    def check_wining(self, board):
+        taken1 = []
+        taken2 = []
+        for tile in np.argwhere(board == 1):
+            row, col = tile
+            taken1.append([row, col])
+        for tile in np.argwhere(board == 2):
+            row, col = tile
+            taken2.append([row, col])
+        
+        player1 = self.wining_state(taken1, 1)
+        player2 = self.wining_state(taken2, 2)
+
+        if player1:
+            return 1
+        
+        if player2:
+            return 2
+        
+        return 0
+    
+    def wining_state(self, taken, player_number):
+        width = 4 #Should be taken from rest of program
+
+        adjacent_offset = [
+            [0, -1], # topleft
+            [1, -1], # topright
+            [1, 0],  # right
+            [0, 1],  # bottomright
+            [-1, 1],  # bottomleft
+            [-1, 0], # left     
+        ]
+
+        unvisited = []
+        visited = []
+        contains_begin = False
+        contains_end = False
+
+        for item in taken:
+            row, col = item
+            if player_number == 2:
+                if col == 0:
+                    unvisited.append(item)
+                    contains_begin = True
+                if col == width -1:
+                    contains_end = True
+            else:
+                if row == 0:
+                    unvisited.append(item)
+                    contains_begin = True
+                if row == width -1:
+                    contains_end = True
+
+        if not contains_begin or not contains_end:
+            return False
+
+        while unvisited:
+            item = unvisited.pop()
+            visited.append(item)
+            for offset in adjacent_offset:
+                adjacent_coordinate = [item[0] + offset[0], item[1] + offset[1]]
+                if adjacent_coordinate not in visited:
+                    if adjacent_coordinate in taken:
+                        row, col = adjacent_coordinate
+                        unvisited.append(adjacent_coordinate)
+                        if player_number == 2:
+                            if col == width -1:
+                                return True
+                        else:
+                            if row == width -1:
+                                return True
+        
+        return False
 
     def Mcts_bot(self, board):
 

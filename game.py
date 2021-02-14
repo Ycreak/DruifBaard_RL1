@@ -20,6 +20,7 @@ class Game(QGameboard):
         self.bot1 = 'random'
         self.bot2 = 'random'
         self.search_depth = 3
+        self.use_Dijkstra = True
         # Whether we have a tourney
         # self.tourney = True
         self.tourney_rounds = 1
@@ -84,23 +85,29 @@ class Game(QGameboard):
         Returns:
             int: describing who won
         """        
+
+        for row in range(self.board_dimension+1):
+            for col in range(self.board_dimension+1):
+                board[row, col] = 0
+        
         while(True):
             # If the board is not yet full, we can do a move
             if not self.eval.Check_board_full(self.board):
                 # Do move for first player
-                self.board = self.Do_bot_move(self.board, bot1, self.yellow, 'player1', self.search_depth)
+                self.board = self.Do_bot_move(self.board, bot1, self.yellow, 'player1', self.search_depth, self.use_Dijkstra)
                 if self.eval.Check_winning(self.board, 'player1'):
-                    # print('Player 1 has won!')
+                    #print('Player 1 has won!')
                     outcome = 1
                     break
             else:
                 # print('Board is full!')
                 outcome = 0
                 break
+
             # If player 1 did not win, check if the board is full
             if not self.eval.Check_board_full(self.board):
                 # Do move for first player
-                self.board = self.Do_bot_move(self.board, bot2, self.red, 'player2', self.search_depth)
+                self.board = self.Do_bot_move(self.board, bot2, self.red, 'player2', self.search_depth, self.use_Dijkstra)
                 if self.eval.Check_winning(self.board, 'player2'):
                     # print('Player 2 has won!')
                     outcome = 2
@@ -110,11 +117,9 @@ class Game(QGameboard):
                 outcome = 0
                 break
 
-        # print('GAME OVER.')
-
         return outcome
 
-    def Do_bot_move(self, board, bot_type, colour, player, search_depth):
+    def Do_bot_move(self, board, bot_type, colour, player, search_depth, use_Dijkstra):
         """Handles everything regarding the moving of a bot: calls bot class, adds tile information
         and paints the tile on the screen. Also updates the board and returns it with the new move.
 
@@ -130,7 +135,7 @@ class Game(QGameboard):
         TODO: Revise this class.
         """           
 
-        row, col = self.bot.Do_move(board, bot_type, search_depth)   
+        row, col = self.bot.Do_move(board, bot_type, search_depth, self.use_Dijkstra)   
         
         location = f"{row}-{col}"
         selected_tile = self.map_tile_by_coordinates[location]
@@ -144,4 +149,4 @@ class Game(QGameboard):
     def Print_parameters(self):
         """Print some parameters to screen
         """
-        print(self.bot1, 'bot versus', self.bot2, 'bot')        
+        print(self.bot1, 'bot versus', self.bot2, 'bot')    
