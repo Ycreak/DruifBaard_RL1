@@ -49,7 +49,7 @@ class Bot:
             child = [-700, -700]
             return 0, child
 
-        winner = self.check_wining(board)
+        winner = self.check_winning(board)
         if winner == 1:
             child = [-800, -800]
             return 800, child
@@ -201,7 +201,7 @@ class Bot:
         
         return adjacent
 
-    def check_wining(self, board):
+    def check_winning(self, board):
         taken1 = []
         taken2 = []
         for tile in np.argwhere(board == 1):
@@ -211,8 +211,8 @@ class Bot:
             row, col = tile
             taken2.append([row, col])
         
-        player1 = self.wining_state(taken1, 1)
-        player2 = self.wining_state(taken2, 2)
+        player1 = self.winning_state(taken1, 1)
+        player2 = self.winning_state(taken2, 2)
 
         if player1:
             return 1
@@ -222,7 +222,7 @@ class Bot:
         
         return 0
     
-    def wining_state(self, taken, player_number):
+    def winning_state(self, taken, player_number):
         width = 4 #Should be taken from rest of program
 
         adjacent_offset = [

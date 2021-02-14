@@ -92,16 +92,16 @@ class Evaluate:
             for tile in np.argwhere(board == 2):
                 row, col = tile
                 taken2.append([row, col])
-            return self.wining_state(taken2, 2)
+            return self.winning_state(taken2, 2)
         else:
             taken1 = []
             for tile in np.argwhere(board == 1):
                 row, col = tile
                 taken1.append([row, col])
-            return self.wining_state(taken1, 1)
+            return self.winning_state(taken1, 1)
     
-    def wining_state(self, taken, player_number):
-        width = 4 #Should be taken from rest of program
+    def winning_state(self, taken, player_number):
+        width = self.num_cols
 
         adjacent_offset = [
             [0, -1], # topleft
