@@ -9,6 +9,7 @@ class Bot:
 
     def Do_move(self, board, bot_type, search_depth, use_Dijkstra):
         self.board_dimension = board.shape[0] - 1 #TODO: should be in init
+        # print(self.board_dimension)
         
         if bot_type == 'random':
             return self.Random_bot(board, search_depth)
@@ -231,7 +232,7 @@ class Bot:
         return 0
     
     def winning_state(self, taken, player_number):
-        width = 4 #Should be taken from rest of program
+        width = self.board_dimension #TODO: Should be taken from rest of program
 
         adjacent_offset = [
             [0, -1], # topleft

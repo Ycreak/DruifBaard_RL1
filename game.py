@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 from trueskill import Rating, quality_1vs1, rate_1vs1
 
@@ -27,12 +28,15 @@ class Game(QGameboard):
         self.tourney_rounds = 1
         self.perform_experiments = True
         # Print parameters on screen
-        self.Print_parameters()
-
-        self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2)
+        # self.Print_parameters()
 
         if self.perform_experiments:
             self.Perform_experiments()
+            print('End of experiments, shutting down.')
+            exit(1)
+
+        self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2)
+
 
        
     def Play_bot_tourney(self, rounds, bot1, bot2):
@@ -52,18 +56,22 @@ class Game(QGameboard):
         bot2_wins = 0
 
         # Starting TrueSkill rating
-        r_bot1 = Rating(25)
-        r_bot2 = Rating(25)
+        start_rating = 25
+        
+        r_bot1 = Rating(start_rating)
+        r_bot2 = Rating(start_rating)
 
         # Pandas Dataframe
-        # column_names = [self.bot1, self.bot2]
-        column_names = ['bot1', 'bot2']
+        column_names = [bot1, bot2]
+        # column_names = ['bot1', 'bot2']
 
         df = pd.DataFrame(columns = column_names)
-        
+        start_position = {bot1: start_rating, bot2: start_rating}
+        df = df.append(start_position, ignore_index=True)
+
         # Lets play a few rounds
         for _ in range(rounds):
-            outcome = self.Play_single_bot_match(self.bot1, self.bot2, self.board)
+            outcome = self.Play_single_bot_match(bot1, bot2, self.board) #FIXME: not self.bot
 
             if outcome == 0:
                 draws += 1
@@ -78,8 +86,8 @@ class Game(QGameboard):
                 r_bot1, r_bot2 = rate_1vs1(r_bot2, r_bot1)
 
             # Add scores to dataframe
-            new_line = {'bot1': r_bot1.mu, 'bot2': r_bot2.mu}
-            # new_line = {bot1: r_bot1.mu, bot2: r_bot2.mu}
+            # new_line = {'bot1': r_bot1.mu, 'bot2': r_bot2.mu}
+            new_line = {bot1: r_bot1.mu, bot2: r_bot2.mu}
 
             df = df.append(new_line, ignore_index=True)
 
@@ -157,7 +165,7 @@ class Game(QGameboard):
         row, col = self.bot.Do_move(board, bot_type, search_depth, self.use_Dijkstra)   
         
         if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
-            raise Exception('Row or col exceeds board boundaries: \nrow: {0}\ncol: {1}\ndimension: {2}'.format(row, col, self.board_dimension)) 
+            raise Exception('Row or col exceeds board boundaries: \n\trow: {0}\n\tcol: {1}\n\tdimension: {2}'.format(row, col, self.board_dimension)) 
 
         location = f"{row}-{col}"
         selected_tile = self.map_tile_by_coordinates[location]
@@ -175,17 +183,37 @@ class Game(QGameboard):
 
     def Perform_experiments(self):
         
-        self.tourney_rounds = 10
+        self.tourney_rounds = 5
 
-        df = self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2)
-        ax = df.plot.line(title='Random versus Random')
+        # Experiment 0: random versus random
+        # df = self.Play_bot_tourney(self.tourney_rounds, 'random', 'random')
+        # self.Create_plot(df, 'random_vs_random2.png')
+
+        # Experiment 1: random bot versus alphabeta
+        df = self.Play_bot_tourney(self.tourney_rounds, 'alphabeta', 'random')
+        self.Create_plot(df, 'random_vs_alphabeta.png')
+
+        # Experiment 2: alphabeta 3 versus alphabeta 4
+    
+    def Create_plot(self, df, filename):
+
+        from matplotlib.ticker import MaxNLocator
+
+        trueskill_max = 35
+
+        # Take the names of the columns and plot these
+        ax = df.plot.line(title='{0} versus {1} on {2}x{3}'.format(df.columns[0], df.columns[1], self.board_dimension, self.board_dimension))
         
         ax.set_xlabel("Number of rounds played")
         ax.set_ylabel("TrueSkill score")
 
         ax.set_ylim(ymin=0)
-        plt.show()
-        # print(df)
-        # Experiment 1: random bot versus alphabeta
+        
+        plt.xlim([0, self.tourney_rounds])
+        plt.ylim([0, trueskill_max])
 
-        # Experiment 2: alphabeta 3 versus alphabeta 4
+        # To make X axis nice integers
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+        plt.savefig('plots/{0}.png'.format(filename))
+        plt.show()
