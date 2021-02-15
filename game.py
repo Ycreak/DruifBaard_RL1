@@ -137,6 +137,9 @@ class Game(QGameboard):
 
         row, col = self.bot.Do_move(board, bot_type, search_depth, self.use_Dijkstra)   
         
+        if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
+            raise Exception('row or col exceeds board boundaries: \nrow: {0}\ncol: {1}\ndimension: {2}'.format(row, col, self.board_dimension)) 
+
         location = f"{row}-{col}"
         selected_tile = self.map_tile_by_coordinates[location]
         # Paint what is done
