@@ -8,6 +8,7 @@ class Bot:
         # print('bliep bloop')
 
     def Do_move(self, board, bot_type, search_depth, use_Dijkstra):
+        self.board_dimension = board.shape[0] - 1 #TODO: should be in init
         
         if bot_type == 'random':
             return self.Random_bot(board, search_depth)
@@ -114,7 +115,7 @@ class Bot:
 
     def dijkstra(self, board):
 
-        width = 4 #Should be taken from rest of program
+        width = self.board_dimension #TODO: Should be taken from rest of program
         #Begin point [-5, -5]
         #End point   [-10, -10]
 

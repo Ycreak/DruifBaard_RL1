@@ -1,4 +1,8 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
 from trueskill import Rating, quality_1vs1, rate_1vs1
+
 from bot import Bot
 from evaluate import Evaluate
 
@@ -13,7 +17,7 @@ class Game(QGameboard):
         self.bot = Bot()
 
         # Game Parameters
-        self.board_dimension = 6
+        self.board_dimension = 4
         # Algorithms for the bots
         self.bot1 = 'random'
         self.bot2 = 'random'
@@ -27,11 +31,10 @@ class Game(QGameboard):
 
         self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2)
 
-        if self.perform_experiments():
+        if self.perform_experiments:
             self.Perform_experiments()
 
        
-
     def Play_bot_tourney(self, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
 
@@ -39,6 +42,9 @@ class Game(QGameboard):
             rounds (int): number of rounds to be played
             bot1 (string): type for bot 1
             bot2 (string): type for bot 2
+
+        Returns:
+            dataframe: of TrueSkill scores            
         """        
         # Stats
         draws = 0
@@ -49,6 +55,12 @@ class Game(QGameboard):
         r_bot1 = Rating(25)
         r_bot2 = Rating(25)
 
+        # Pandas Dataframe
+        # column_names = [self.bot1, self.bot2]
+        column_names = ['bot1', 'bot2']
+
+        df = pd.DataFrame(columns = column_names)
+        
         # Lets play a few rounds
         for _ in range(rounds):
             outcome = self.Play_single_bot_match(self.bot1, self.bot2, self.board)
@@ -65,10 +77,20 @@ class Game(QGameboard):
                 bot2_wins += 1
                 r_bot1, r_bot2 = rate_1vs1(r_bot2, r_bot1)
 
+            # Add scores to dataframe
+            new_line = {'bot1': r_bot1.mu, 'bot2': r_bot2.mu}
+            # new_line = {bot1: r_bot1.mu, bot2: r_bot2.mu}
+
+            df = df.append(new_line, ignore_index=True)
+
         print('\nNumber of rounds played:', rounds)
         print('Bot1 wins:', bot1_wins, '\nBot2 wins:', bot2_wins, '\nDraws:', draws)
         print('\nRating bot 1:', r_bot1)
         print('Rating bot 2:', r_bot2)
+
+        print(df)
+
+        return df
 
     def Play_single_bot_match(self, bot1, bot2, board):
         """Plays a botmatch between the two provided bots. Returns the outcome of the game. 0 means draw,
@@ -150,3 +172,20 @@ class Game(QGameboard):
         """Print some parameters to screen
         """
         print(self.bot1, 'bot versus', self.bot2, 'bot')    
+
+    def Perform_experiments(self):
+        
+        self.tourney_rounds = 10
+
+        df = self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2)
+        ax = df.plot.line(title='Random versus Random')
+        
+        ax.set_xlabel("Number of rounds played")
+        ax.set_ylabel("TrueSkill score")
+
+        ax.set_ylim(ymin=0)
+        plt.show()
+        # print(df)
+        # Experiment 1: random bot versus alphabeta
+
+        # Experiment 2: alphabeta 3 versus alphabeta 4
