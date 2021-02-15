@@ -71,7 +71,7 @@ class Game(QGameboard):
 
         # Lets play a few rounds
         for _ in range(rounds):
-            outcome = self.Play_single_bot_match(bot1, bot2, self.board) #FIXME: not self.bot
+            outcome = self.Play_single_bot_match(bot1, bot2, self.board)
 
             if outcome == 0:
                 draws += 1
@@ -92,7 +92,7 @@ class Game(QGameboard):
             df = df.append(new_line, ignore_index=True)
 
         print('\nNumber of rounds played:', rounds)
-        print('Bot1 wins:', bot1_wins, '\nBot2 wins:', bot2_wins, '\nDraws:', draws)
+        print(bot1, 'wins:', bot1_wins, '\n', bot2, 'wins:', bot2_wins, '\nDraws:', draws)
         print('\nRating bot 1:', r_bot1)
         print('Rating bot 2:', r_bot2)
 
@@ -113,16 +113,18 @@ class Game(QGameboard):
             int: describing who won
         """        
 
-        for row in range(self.board_dimension+1):
-            for col in range(self.board_dimension+1):
-                board[row, col] = 0
-        
+        # for row in range(self.board_dimension+1):
+        #     for col in range(self.board_dimension+1):
+        #         board[row, col] = 0
+        # Play the game on a nice empty board.
+        board = np.zeros(shape=(self.board_dimension + 1, self.board_dimension + 1), dtype=int)
+
         while(True):
             # If the board is not yet full, we can do a move
-            if not self.eval.Check_board_full(self.board):
+            if not self.eval.Check_board_full(board):
                 # Do move for first player
-                self.board = self.Do_bot_move(self.board, bot1, self.yellow, 'player1', self.search_depth, self.use_Dijkstra)
-                if self.eval.Check_winning(self.board, 'player1'):
+                board = self.Do_bot_move(board, bot1, self.yellow, 'player1', self.search_depth, self.use_Dijkstra)
+                if self.eval.Check_winning(board, 'player1'):
                     #print('Player 1 has won!')
                     outcome = 1
                     break
@@ -132,10 +134,10 @@ class Game(QGameboard):
                 break
 
             # If player 1 did not win, check if the board is full
-            if not self.eval.Check_board_full(self.board):
+            if not self.eval.Check_board_full(board):
                 # Do move for first player
-                self.board = self.Do_bot_move(self.board, bot2, self.red, 'player2', self.search_depth, self.use_Dijkstra)
-                if self.eval.Check_winning(self.board, 'player2'):
+                board = self.Do_bot_move(board, bot2, self.red, 'player2', self.search_depth, self.use_Dijkstra)
+                if self.eval.Check_winning(board, 'player2'):
                     # print('Player 2 has won!')
                     outcome = 2
                     break
@@ -164,6 +166,10 @@ class Game(QGameboard):
 
         row, col = self.bot.Do_move(board, bot_type, search_depth, self.use_Dijkstra)   
         
+        # if col == -900:
+        #     row = 0
+        #     col = 0
+
         if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
             raise Exception('Row or col exceeds board boundaries: \n\trow: {0}\n\tcol: {1}\n\tdimension: {2}'.format(row, col, self.board_dimension)) 
 
@@ -183,7 +189,7 @@ class Game(QGameboard):
 
     def Perform_experiments(self):
         
-        self.tourney_rounds = 5
+        self.tourney_rounds = 20
 
         # Experiment 0: random versus random
         # df = self.Play_bot_tourney(self.tourney_rounds, 'random', 'random')
