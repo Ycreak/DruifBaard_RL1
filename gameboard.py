@@ -58,41 +58,41 @@ class QGameboard(QtWidgets.QGraphicsView):
         self.yellow = [255,255,0]
         self.red = [255,0,0]
 
-    def mousePressEvent(self, event):
-        """This functions listens for mouse activity. Calls functions accordingly
+    # def mousePressEvent(self, event):
+    #     """This functions listens for mouse activity. Calls functions accordingly
 
-        Args:
-            event ([type]): mouse event
-        """
+    #     Args:
+    #         event ([type]): mouse event
+    #     """
 
-        # Get position (of pixel clicked)
-        position = self.mapToScene(event.pos())
-        # Associated tile graphic_item
-        new_selected_tile = self.scene.itemAt(position, QtGui.QTransform())
-        # Update numpy board
-        coordinates = self.Get_tile_grid_location(new_selected_tile)       
+    #     # Get position (of pixel clicked)
+    #     position = self.mapToScene(event.pos())
+    #     # Associated tile graphic_item
+    #     new_selected_tile = self.scene.itemAt(position, QtGui.QTransform())
+    #     # Update numpy board
+    #     coordinates = self.Get_tile_grid_location(new_selected_tile)       
 
-        # Play a human move, followed by a bot move. THIS IS FOR TESTING ONLY
-        if not self.eval.Check_board_full(self.board):
-            if self.Legal_move(self.board, coordinates[0], coordinates[1]):
-                print('Legal move.', coordinates)
-                self.Paint_tile(new_selected_tile, self.yellow)
-                self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1]) #TODO: row, col replace with tile
+    #     # Play a human move, followed by a bot move. THIS IS FOR TESTING ONLY
+    #     if not self.eval.Check_board_full(self.board):
+    #         if self.Legal_move(self.board, coordinates[0], coordinates[1]):
+    #             print('Legal move.', coordinates)
+    #             self.Paint_tile(new_selected_tile, self.yellow)
+    #             self.board = self.Update_numpy_board(self.board, coordinates[0], coordinates[1]) #TODO: row, col replace with tile
                 
-                # Check if game over
-                if self.eval.Check_winning(self.board, 'player1'):
-                    print('THE GAME IS OVER: HUMAN WON')            
+    #             # Check if game over
+    #             if self.eval.Check_winning(self.board, 'player1'):
+    #                 print('THE GAME IS OVER: HUMAN WON')            
                 
-                elif not self.eval.Check_board_full(self.board):
-                    self.board = self.Do_bot_move(self.board, self.bot1, self.red, 'player2', 0)
+    #             elif not self.eval.Check_board_full(self.board):
+    #                 self.board = self.Do_bot_move(self.board, self.bot1, self.red, 'player2', 0)
 
-                    if self.eval.Check_winning(self.board, 'player2'):
-                        print('THE GAME IS OVER: BOT WON') 
+    #                 if self.eval.Check_winning(self.board, 'player2'):
+    #                     print('THE GAME IS OVER: BOT WON') 
 
-            else:
-                print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.')
-        else:
-            print('BOARD IS FULL')
+    #         else:
+    #             print('ILLEGAL MOVE DETECTED. PLEASE TRY AGAIN.')
+    #     else:
+    #         print('BOARD IS FULL')
 
     def Create_numpy_board(self, rows, columns):
         """Creates numpy matrix that represents the board
@@ -129,21 +129,21 @@ class QGameboard(QtWidgets.QGraphicsView):
 
         return board
 
-    def Legal_move(self, board, row, col):
-        """Checks if the given move is possible
+    # def Legal_move(self, board, row, col):
+    #     """Checks if the given move is possible
 
-        Args:
-            board (np array): [description]
-            row (int): [description]
-            col (int): [description]
+    #     Args:
+    #         board (np array): [description]
+    #         row (int): [description]
+    #         col (int): [description]
 
-        Returns:
-            bool: whether the move is possible
-        """        
-        if board[row, col] != 0:
-            return False
-        else: 
-            return True
+    #     Returns:
+    #         bool: whether the move is possible
+    #     """        
+    #     if board[row, col] != 0:
+    #         return False
+    #     else: 
+    #         return True
 
     def Paint_tile(self, tile, colour):
         """Paints the tile provided the colour provided

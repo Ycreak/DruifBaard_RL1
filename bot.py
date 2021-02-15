@@ -16,14 +16,21 @@ class Bot:
         elif bot_type == 'mcts':
             return self.Mcts_bot(board)
         else:
-            print('whut?')
-            exit(1)
+            raise Exception('The bot type {0} is not recognised. \nPlease choose random, alphabeta or mcts.'.format(bot_type)) 
 
     def Random_bot(self, board, search_depth):
+        """Simple bot that checks for an empty space on the board. Returns this in row column format.
+        Whether the board is full is checked before the bot is called.
 
+        Args:
+            board (np array): [description]
+            search_depth (int): [description]
+
+        Returns:
+            ints: of position to play
+        """        
         indeces = np.argwhere(board == 0) 
         row, col = random.choice(indeces)
-        # print('bot move', row, col)
 
         return row, col
 

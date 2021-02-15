@@ -153,93 +153,93 @@ class Evaluate:
         
         return False
 
-    def Check_winning2(self, board, player):
+    # def Check_winning2(self, board, player):
 
-        if self.debugging: 
-            print('Checking win condition for:', player)
+    #     if self.debugging: 
+    #         print('Checking win condition for:', player)
         
-        node_list = []
-        visited_list = []
+    #     node_list = []
+    #     visited_list = []
 
-        # Player1 moves top to bottom, Player2 moves left to right
-        if player == 'player2':
-            player_token = 2
-        elif player == 'player1':
-            player_token = 1
-        else:
-            if self.debugging: 
-                print('player except:',player)
+    #     # Player1 moves top to bottom, Player2 moves left to right
+    #     if player == 'player2':
+    #         player_token = 2
+    #     elif player == 'player1':
+    #         player_token = 1
+    #     else:
+    #         if self.debugging: 
+    #             print('player except:',player)
 
-        # Find all our squares
-        indeces = self.Make_coordinate_list(player_token, board)
+    #     # Find all our squares
+    #     indeces = self.Make_coordinate_list(player_token, board)
 
-        # Find all candidates according to the player token: player1 top-down, player2 left-right
-        node_list = self.Make_candidate_set(indeces, board, player_token)
+    #     # Find all candidates according to the player token: player1 top-down, player2 left-right
+    #     node_list = self.Make_candidate_set(indeces, board, player_token)
        
-        # Now we have found all adjacent candidate tiles. Recursively search through these
-        self.Dig_down(node_list, board, player_token, visited_list)
+    #     # Now we have found all adjacent candidate tiles. Recursively search through these
+    #     self.Dig_down(node_list, board, player_token, visited_list)
         
-        if self.found_winning:
-            return True
-        else:
-            return False
+    #     if self.found_winning:
+    #         return True
+    #     else:
+    #         return False
 
 
 
-    def Dig_down(self, node_list, board, player, visited_list=[]):
-        # THIS FUNCTION NEEDS TO BE REDONE COMPLETELY.
+    # def Dig_down(self, node_list, board, player, visited_list=[]):
+    #     # THIS FUNCTION NEEDS TO BE REDONE COMPLETELY.
         
-        if self.debugging: 
-            print('-------------')
-            print('i got the following list to explore:', node_list)
-            print('i already explored:', visited_list)
+    #     if self.debugging: 
+    #         print('-------------')
+    #         print('i got the following list to explore:', node_list)
+    #         print('i already explored:', visited_list)
 
-        adjacent_list = []
-        # visited_list = []
-        # Exit clause: check if one of the tiles is at the bottom
-        for tile in node_list:
+    #     adjacent_list = []
+    #     # visited_list = []
+    #     # Exit clause: check if one of the tiles is at the bottom
+    #     for tile in node_list:
 
-            if self.debugging: 
-                print('data', player, tile[0], self.num_rows - 1)
+    #         if self.debugging: 
+    #             print('data', player, tile[0], self.num_rows - 1)
 
-            if player == 1 and tile[0] == self.num_rows - 1:
-                # We reached the end, winning position
-                self.found_winning = True
-                # exit(0)
-            elif player == 2 and tile[1] == self.num_cols - 1:
-                self.found_winning = True
+    #         if player == 1 and tile[0] == self.num_rows - 1:
+    #             # We reached the end, winning position
+    #             self.found_winning = True
+    #             # exit(0)
+    #         elif player == 2 and tile[1] == self.num_cols - 1:
+    #             self.found_winning = True
 
-        # Delete from the node_list those nodes we already visited
-        node_list_copy = []
+    #     # Delete from the node_list those nodes we already visited
+    #     node_list_copy = []
         
-        for item in node_list:
-            if item not in visited_list:
-                node_list_copy.append(item)
+    #     for item in node_list:
+    #         if item not in visited_list:
+    #             node_list_copy.append(item)
             
-        node_list = node_list_copy
+    #     node_list = node_list_copy
 
-        if self.debugging: 
-            print('now i need to explore', node_list)
+    #     if self.debugging: 
+    #         print('now i need to explore', node_list)
 
-        # Loop through this list and do recursion        
-        for tile in node_list:
+    #     # Loop through this list and do recursion        
+    #     for tile in node_list:
 
-            if self.debugging: 
-                print('i am now visiting,',tile)
+    #         if self.debugging: 
+    #             print('i am now visiting,',tile)
 
-            adjacent_list = self.Find_adjacent_candidate_tiles(board, tile[0], tile[1], player)
+    #         adjacent_list = self.Find_adjacent_candidate_tiles(board, tile[0], tile[1], player)
 
-            if self.debugging: 
-                print('adjacent is', adjacent_list)
-            # Make sure that we have not yet visited these!
-            if tile not in visited_list:
-                visited_list.append(tile)
+    #         if self.debugging: 
+    #             print('adjacent is', adjacent_list)
+    #         # Make sure that we have not yet visited these!
+    #         if tile not in visited_list:
+    #             visited_list.append(tile)
 
-            if self.debugging: 
-                print('i already visited', visited_list)
+    #         if self.debugging: 
+    #             print('i already visited', visited_list)
                        
-            # Dig down
-            self.Dig_down(adjacent_list, board, player, visited_list)
+    #         # Dig down
+    #         self.Dig_down(adjacent_list, board, player, visited_list)
 
 
 

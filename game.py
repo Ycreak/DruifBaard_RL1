@@ -14,26 +14,23 @@ class Game(QGameboard):
 
         # Game Parameters
         self.board_dimension = 6
-        # Whether two bots play or human vs ai
-        self.bot_match = True
         # Algorithms for the bots
         self.bot1 = 'random'
         self.bot2 = 'random'
         self.search_depth = 3
         self.use_Dijkstra = True
-        # Whether we have a tourney
-        # self.tourney = True
-        self.tourney_rounds = 1
 
+        self.tourney_rounds = 1
+        self.perform_experiments = True
         # Print parameters on screen
         self.Print_parameters()
 
-        # We can pitch two bots against eachother.
-        if self.bot_match:
-            # Now check if we are playing a tourney
-            self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2)
-         
-        # Else do nothing and just wait for mouse events (handled by mousePressEvent)
+        self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2)
+
+        if self.perform_experiments():
+            self.Perform_experiments()
+
+       
 
     def Play_bot_tourney(self, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
@@ -138,7 +135,7 @@ class Game(QGameboard):
         row, col = self.bot.Do_move(board, bot_type, search_depth, self.use_Dijkstra)   
         
         if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
-            raise Exception('row or col exceeds board boundaries: \nrow: {0}\ncol: {1}\ndimension: {2}'.format(row, col, self.board_dimension)) 
+            raise Exception('Row or col exceeds board boundaries: \nrow: {0}\ncol: {1}\ndimension: {2}'.format(row, col, self.board_dimension)) 
 
         location = f"{row}-{col}"
         selected_tile = self.map_tile_by_coordinates[location]
