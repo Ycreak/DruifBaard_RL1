@@ -21,12 +21,8 @@ class Game(QGameboard):
         # Game Parameters
         self.board_dimension = 4
         # Algorithms for the bots
-        self.bot1 = 'random'
-        self.bot2 = 'random'
-        self.search_depth = 3
-
-        #True for Dijkstra evaluation, False for Random evaluation 
-        self.use_dijkstra_evaluation = True
+        self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_Dijkstra=True)
+        self.bot2 = MyBot('rnd', 'random')
 
         self.tourney_rounds = 1
         self.perform_experiments = True
@@ -55,24 +51,23 @@ class Game(QGameboard):
         draws = 0
         bot1_wins = 0
         bot2_wins = 0
-
-        # Starting TrueSkill rating
-        start_rating = 25
-        
+       
         r_bot1 = Rating(bot1.rating)
         r_bot2 = Rating(bot2.rating)
 
-        # Pandas Dataframe
-        column_names = [bot1.name, bot2.name]
+        print('Initial ratings:\n', bot1.name, r_bot1.mu, '\n', bot2.name, r_bot2.mu)
 
-        df = pd.DataFrame(columns = column_names)
-        start_position = {bot1: bot1.rating, bot2: bot2.rating}
-        df = df.append(start_position, ignore_index=True)
+        # Pandas Dataframe
+        # column_names = [bot1.name, bot2.name]
+
+        # df = pd.DataFrame(columns = column_names)
+        # start_position = {bot1.name: bot1.rating, bot2.name: bot2.rating}
+        # df = df.append(start_position, ignore_index=True)
 
         # Lets play a few rounds
         for _ in range(rounds):
-            outcome = self.Play_single_bot_match(bot1, bot2, self.board)
-
+            outcome = self.Play_single_bot_match(bot1, bot2, self.board) #TODO: should not be self.board ideally
+            print('outcome', outcome)
             if outcome == 0:
                 draws += 1
                 r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True) # it is a draw
@@ -83,22 +78,23 @@ class Game(QGameboard):
 
             elif outcome == 2:
                 bot2_wins += 1
-                r_bot1, r_bot2 = rate_1vs1(r_bot2, r_bot1)
+                r_bot2, r_bot1 = rate_1vs1(r_bot2, r_bot1)
 
-            # Add scores to dataframe
-            # new_line = {'bot1': r_bot1.mu, 'bot2': r_bot2.mu}
-            new_line = {bot1.name: r_bot1.mu, bot2.name: r_bot2.mu}
+            print('Rating', bot1.name, r_bot1.mu)
+            print('Rating', bot2.name, r_bot2.mu)            
 
-            df = df.append(new_line, ignore_index=True)
+            ## Add scores to datafram
+            # new_line = {bot1.name: r_bot1.mu, bot2.name: r_bot2.mu}
+            # df = df.append(new_line, ignore_index=True)
 
         print('\nNumber of rounds played:', rounds)
         print(bot1.name, 'wins:', bot1_wins, '\n', bot2.name, 'wins:', bot2_wins, '\nDraws:', draws)
-        print('\nRating bot 1:', r_bot1)
-        print('Rating bot 2:', r_bot2)
+        print('\nRating', bot1.name, r_bot1.mu)
+        print('Rating', bot2.name, r_bot2.mu)
 
-        print(df)
+        # print(df)
 
-        return df, r_bot1.mu, r_bot2.mu
+        return r_bot1.mu, r_bot2.mu
 
     def Play_single_bot_match(self, bot1, bot2, board):
         """Plays a botmatch between the two provided bots. Returns the outcome of the game. 0 means draw,
@@ -175,14 +171,6 @@ class Game(QGameboard):
         # TODO: less convoluted
         return board
 
-    def Print_parameters(self):
-        """Print some parameters to screen
-        """
-        print(self.bot1, 'bot versus', self.bot2, 'bot')    
-
-
-
-
     def Create_plot(self, df, filename):
 
         from matplotlib.ticker import MaxNLocator
@@ -208,75 +196,32 @@ class Game(QGameboard):
 
     def Perform_experiments(self):
         
-        self.tourney_rounds = 1
+        self.tourney_rounds = 5
 
         # Determine ELO
-        bots = ['full_random', 'alphabeta_random_3', 'alphabeta_dijkstra_3', 'alphabeta_dijkstra_4', 'MCTS']
-
-        # b1 = MyBot(random.choice(bots))
-        # print(b1.name, b1.search_depth, b1.use_Dijkstra, b1.algorithm)
         
-        b1 = MyBot('alphabeta_random_3')
-        b2 = MyBot('full_random')
+        b1 = MyBot('rnd', 'random')
+        b2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_Dijkstra=False)
+        b3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_Dijkstra=True)
+        b4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_Dijkstra=True)
 
-        df, r_bot1, r_bot2 = self.Play_bot_tourney(self.tourney_rounds, b1, b2)
+        b1.rating, b4.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b4)
+        b1.rating, b2.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b2)
+        # b1.rating, b3.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b3)
 
+        print(b1.name, b1.rating)
+        print(b2.name, b2.rating)
+        print(b3.name, b3.rating)
+        print(b4.name, b4.rating)
 
-        
         exit(1)
-        # Experiment 0: random versus random
-        # df = self.Play_bot_tourney(self.tourney_rounds, 'random', 'random')
-        # self.Create_plot(df, 'random_vs_random2.png')
 
-        # Experiment 1: random bot versus alphabeta
-        df = self.Play_bot_tourney(self.tourney_rounds, 'alphabeta', 'random')
-        self.Create_plot(df, 'random_vs_alphabeta.png')
-
-        # # Experiment 2: alphabeta dijkstra 3 versus alphabeta random 3
-        # self.search_depth1 = 3
-        # self.search_depth2 = 3
-        # self.use_Dijkstra1 = False
-        # self.use_Dijkstra1 = True
-
-        # df = self.Play_bot_tourney(self.tourney_rounds, 'alphabeta', 'alphabeta')
-
-        # # Experiment 3: alphabeta dijkstra 3 versus alphabeta dijkstra 4
-        # self.search_depth1 = 3
-        # self.search_depth2 = 4
-        # self.use_Dijkstra1 = True
-        # self.use_Dijkstra1 = True
-
-        df = self.Play_bot_tourney(self.tourney_rounds, 'alphabeta', 'alphabeta')
 
 class MyBot():
-  def __init__(self, name):
+  def __init__(self, name, algorithm, search_depth=-1, use_Dijkstra=False):
     self.name = name
     self.rating = 25
+    self.search_depth = search_depth
+    self.use_Dijkstra = use_Dijkstra
+    self.algorithm = algorithm
 
-    # Set object
-    if name == 'full_random':
-        self.search_depth = -1
-        self.use_Dijkstra = False
-        self.algorithm = 'random'
-
-    elif name == 'alphabeta_random_3':
-        self.search_depth = 3
-        self.use_Dijkstra = False
-        self.algorithm = 'alphabeta'
-
-    elif name == 'alphabeta_dijkstra_3':
-        self.search_depth = 3
-        self.use_Dijkstra = True
-        self.algorithm = 'alphabeta'
-
-    elif name == 'alphabeta_dijkstra_4':
-        self.search_depth = 4
-        self.use_Dijkstra = True
-        self.algorithm = 'alphabeta'
-
-    elif name == 'MCTS':
-        self.search_depth = -1
-        self.use_Dijkstra = False
-        self.algorithm = 'MCTS'
-    else:
-        print('Unknown bot')
