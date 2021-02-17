@@ -19,7 +19,7 @@ class Game(QGameboard):
         self.bot = Bot()
 
         # Game Parameters
-        self.board_dimension = 4
+        self.board_dimension = 6
         # Algorithms for the bots
         self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_Dijkstra=True)
         self.bot2 = MyBot('rnd', 'random')
@@ -33,8 +33,6 @@ class Game(QGameboard):
 
         self.Play_single_bot_match(self.bot1, self.bot2, self.board)
 
-
-       
     def Play_TrueSkill_match(self, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
 
@@ -149,18 +147,23 @@ class Game(QGameboard):
         return board
 
     def Create_plot(self, df, filename):
+        """Simple function that creates a line plot of the given dataframe.
 
+        Args:
+            df (pd df): dataframe with TrueSkill scores of the bots
+            filename (string): filename to be given
+        """
         from matplotlib.ticker import MaxNLocator
-
+        # Y Cap.
         trueskill_max = 40
 
         # Take the names of the columns and plot these
-        ax = df.plot.line(title='{0} versus {1} on {2}x{2}'.format(df.columns[0], df.columns[1], self.board_dimension))
+        ax = df.plot.line(title='Round Robin on {0}x{0}'.format(self.board_dimension+1))
         
         ax.set_xlabel("Number of rounds played")
         ax.set_ylabel("TrueSkill score")
 
-        ax.set_ylim(ymin=0)
+        # ax.set_ylim(ymin=0) # TODO: deprecated?
         
         plt.xlim([0, self.tourney_rounds])
         plt.ylim([0, trueskill_max])
@@ -172,8 +175,9 @@ class Game(QGameboard):
         plt.show()
 
     def Perform_experiments(self):
-        
-        self.tourney_rounds = 2
+        """This class performs the experiments as required in the Assignment
+        """        
+        self.tourney_rounds = 1
 
         # Create the players        
         b1 = MyBot('rnd', 'random')
@@ -203,7 +207,17 @@ class Game(QGameboard):
         self.Create_plot(df, 'round_robin')
 
     def Play_round_robin(self, b1, b2, b3, b4):
-        
+        """Creates and plays a round robin tournament with the bots given
+
+        Args:
+            b1 ([type]): [description]
+            b2 ([type]): [description]
+            b3 ([type]): [description]
+            b4 ([type]): [description]
+
+        Returns:
+            bots: classes and their updated ELO scores
+        """        
         from round_robin_tournament import Tournament
   
         players = [b1, b2, b3, b4]
@@ -233,14 +247,16 @@ class Game(QGameboard):
         return b1, b2, b3, b4
 
 class MyBot():
-  def __init__(self, name, algorithm, search_depth=-1, use_Dijkstra=False,
-        ID=False, TT=False):
-    self.name = name
-    self.rating = 25
-    self.search_depth = search_depth
-    self.use_Dijkstra = use_Dijkstra
-    self.algorithm = algorithm
+    """Bot Class. Has all info a bot needs. Can be given to the Bot class in bot.py
+    """    
+    def __init__(self, name, algorithm, search_depth=-1, use_Dijkstra=False,
+            ID=False, TT=False):
+        self.name = name
+        self.rating = 25
+        self.search_depth = search_depth
+        self.use_Dijkstra = use_Dijkstra
+        self.algorithm = algorithm
 
-    self.ID = ID
-    self.TT = TT
+        self.ID = ID
+        self.TT = TT
 
