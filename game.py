@@ -94,7 +94,10 @@ class Game(QGameboard):
 
         # print(df)
 
-        return r_bot1.mu, r_bot2.mu
+        bot1.rating = r_bot1
+        bot2.rating = r_bot2
+
+        return bot1, bot2
 
     def Play_single_bot_match(self, bot1, bot2, board):
         """Plays a botmatch between the two provided bots. Returns the outcome of the game. 0 means draw,
@@ -196,7 +199,7 @@ class Game(QGameboard):
 
     def Perform_experiments(self):
         
-        self.tourney_rounds = 5
+        self.tourney_rounds = 1
 
         # Determine ELO
         
@@ -205,9 +208,74 @@ class Game(QGameboard):
         b3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_Dijkstra=True)
         b4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_Dijkstra=True)
 
-        b1.rating, b4.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b4)
-        b1.rating, b2.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b2)
+        # b1.rating, b4.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b4)
+        # b1.rating, b2.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b2)
         # b1.rating, b3.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b3)
+
+        from round_robin_tournament import Tournament
+
+        players = [b1, b2, b3, b4]
+
+        tournament = Tournament(players)
+
+        matches = tournament.get_active_matches()
+
+        print('Start of Round Robin Tournament')
+        while len(matches) > 0:
+            print("{} matches left".format(len(matches)))
+            match = matches[0]
+            bots = match.get_participants()
+            first_participant = bots[0]
+            first_participant_name = first_participant.get_competitor()
+            second_participant = bots[1]
+            second_participant_name = second_participant.get_competitor()
+            print("{} vs {}".format(first_participant_name.name, second_participant_name.name))
+            
+            first_participant_name, second_participant_name = self.Play_bot_tourney(self.tourney_rounds, first_participant_name, second_participant_name)
+
+            
+            
+            tournament.add_win(match, first_participant_name)
+            matches = tournament.get_active_matches()
+
+        print('Start of Round Robin Tournament')
+        while len(matches) > 0:
+            print("{} matches left".format(len(matches)))
+            match = matches[0]
+            bots = match.get_participants()
+            first_participant = bots[0]
+            first_participant_name = first_participant.get_competitor()
+            second_participant = bots[1]
+            second_participant_name = second_participant.get_competitor()
+            print("{} vs {}".format(first_participant_name.name, second_participant_name.name))
+            
+            first_participant_name, second_participant_name = self.Play_bot_tourney(self.tourney_rounds, first_participant_name, second_participant_name)
+
+            
+            
+            tournament.add_win(match, first_participant_name)
+            matches = tournament.get_active_matches()
+
+        print('Start of Round Robin Tournament')
+        while len(matches) > 0:
+            print("{} matches left".format(len(matches)))
+            match = matches[0]
+            bots = match.get_participants()
+            first_participant = bots[0]
+            first_participant_name = first_participant.get_competitor()
+            second_participant = bots[1]
+            second_participant_name = second_participant.get_competitor()
+            print("{} vs {}".format(first_participant_name.name, second_participant_name.name))
+            
+            first_participant_name, second_participant_name = self.Play_bot_tourney(self.tourney_rounds, first_participant_name, second_participant_name)
+
+            
+            
+            tournament.add_win(match, first_participant_name)
+            matches = tournament.get_active_matches()
+
+        # print(tournament.get_winners())
+
 
         print(b1.name, b1.rating)
         print(b2.name, b2.rating)
