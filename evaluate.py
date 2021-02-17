@@ -87,22 +87,45 @@ class Evaluate:
         return node_list
 
     def Check_winning(self, board, player):
-        if player == 'player2':
-            taken2 = []
-            for tile in np.argwhere(board == 2):
-                row, col = tile
-                taken2.append([row, col])
-            return self.winning_state(taken2, 2)
-        else:
-            taken1 = []
-            for tile in np.argwhere(board == 1):
-                row, col = tile
-                taken1.append([row, col])
-            return self.winning_state(taken1, 1)
-    
-    def winning_state(self, taken, player_number):
-        width = self.num_cols
+        """Returns if one of the players has won the game 
 
+        Args:
+            board (np array): the current playboard
+            player (string): player for which we want to check
+
+        Returns:
+            bool: True of the current game has been won by the player,
+                False if the current game has not bee won by the player
+        """ 
+
+        if player == 'player2':
+            taken_spaces = []
+            for space in np.argwhere(board == 2):
+                row, col = space
+                taken_spaces.append([row, col])
+            return self.Check_winning_for_player(taken_spaces, 2)
+        else:
+            taken_spaces = []
+            for space in np.argwhere(board == 1):
+                row, col = space
+                taken_spaces.append([row, col])
+            return self.Check_winning_for_player(taken_spaces, 1)
+    
+    def Check_winning_for_player(self, taken_spaces, player_number):
+        """Returns if a player has won the game
+
+        Args:
+            taken_spaces (list of tuples of ints): list of the coordinates of taken spaces by the player 
+            player_number (int): player number for which we want to check
+
+        Returns:
+            bool: True of the current game has been won by the player,
+                False if the current game has not bee won by the player
+        """    
+        
+        board_dimension = self.num_cols
+
+        #All the possible connections of a space
         adjacent_offset = [
             [0, -1], # topleft
             [1, -1], # topright
@@ -112,45 +135,72 @@ class Evaluate:
             [-1, 0], # left     
         ]
 
+        #The list of unvisited spaces in the algorithm
         unvisited = []
+
+        #The list of visited spaces in the algorithm
         visited = []
+
+        #To keep track if a winning state is even possible
         contains_begin = False
         contains_end = False
 
-        for item in taken:
-            row, col = item
+        for space in taken_spaces:
+            row, col = space
+
             if player_number == 2:
                 if col == 0:
-                    unvisited.append(item)
+
+                    #Add all the taken spaces in the fist column to the list of unvisited items
+                    unvisited.append(space)
+
                     contains_begin = True
-                if col == width -1:
-                    contains_end = True
-            else:
-                if row == 0:
-                    unvisited.append(item)
-                    contains_begin = True
-                if row == width -1:
+
+                if col == board_dimension - 1:
                     contains_end = True
 
+            else:
+                if row == 0:
+
+                    #Add all the taken spaces in the top row to the list of unvisited items
+                    unvisited.append(space)
+
+                    contains_begin = True
+
+                if row == board_dimension - 1:
+                    contains_end = True
+
+        #If there is no taken space in the first and last row or column a winning state is impossible
         if not contains_begin or not contains_end:
             return False
 
         while unvisited:
-            item = unvisited.pop()
-            visited.append(item)
+
+            #Go over all spaces in the unvisited list
+            space = unvisited.pop()
+            visited.append(space)
+
+            #Go over all adjacent spaces
             for offset in adjacent_offset:
-                adjacent_coordinate = [item[0] + offset[0], item[1] + offset[1]]
+                adjacent_coordinate = [space[0] + offset[0], space[1] + offset[1]]
+                
+                #It's no use looking at spaces we allready looked at
                 if adjacent_coordinate not in visited:
-                    if adjacent_coordinate in taken:
+                    
+                    #If the space is also taken, we can add it to the unvisited list
+                    if adjacent_coordinate in taken_spaces:
                         row, col = adjacent_coordinate
                         unvisited.append(adjacent_coordinate)
+
+                        #If we have reached the other side of the board, the game is won
                         if player_number == 2:
-                            if col == width -1:
+                            if col == board_dimension - 1:
                                 return True
                         else:
-                            if row == width -1:
+                            if row == board_dimension - 1:
                                 return True
         
+        #If we never reached the other side of the board the game is not won by this player
         return False
 
     # def Check_winning2(self, board, player):

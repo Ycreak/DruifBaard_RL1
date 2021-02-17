@@ -23,7 +23,9 @@ class Game(QGameboard):
         self.bot1 = 'random'
         self.bot2 = 'random'
         self.search_depth = 3
-        self.use_Dijkstra = True
+
+        #True for Dijkstra evaluation, False for Random evaluation 
+        self.use_dijkstra_evaluation = True
 
         self.tourney_rounds = 1
         self.perform_experiments = True
@@ -123,7 +125,7 @@ class Game(QGameboard):
             # If the board is not yet full, we can do a move
             if not self.eval.Check_board_full(board):
                 # Do move for first player
-                board = self.Do_bot_move(board, bot1, self.yellow, 'player1', self.search_depth, self.use_Dijkstra)
+                board = self.Do_bot_move(board, bot1, self.yellow, 'player1', self.search_depth, self.use_dijkstra_evaluation)
                 if self.eval.Check_winning(board, 'player1'):
                     #print('Player 1 has won!')
                     outcome = 1
@@ -136,7 +138,7 @@ class Game(QGameboard):
             # If player 1 did not win, check if the board is full
             if not self.eval.Check_board_full(board):
                 # Do move for first player
-                board = self.Do_bot_move(board, bot2, self.red, 'player2', self.search_depth, self.use_Dijkstra)
+                board = self.Do_bot_move(board, bot2, self.red, 'player2', self.search_depth, self.use_dijkstra_evaluation)
                 if self.eval.Check_winning(board, 'player2'):
                     # print('Player 2 has won!')
                     outcome = 2
@@ -148,7 +150,7 @@ class Game(QGameboard):
 
         return outcome
 
-    def Do_bot_move(self, board, bot_type, colour, player, search_depth, use_Dijkstra):
+    def Do_bot_move(self, board, bot_type, colour, player, search_depth, use_dijkstra_evaluation):
         """Handles everything regarding the moving of a bot: calls bot class, adds tile information
         and paints the tile on the screen. Also updates the board and returns it with the new move.
 
@@ -164,7 +166,7 @@ class Game(QGameboard):
         TODO: Revise this class.
         """           
 
-        row, col = self.bot.Do_move(board, bot_type, search_depth, self.use_Dijkstra)   
+        row, col = self.bot.Do_move(board, bot_type, search_depth, self.use_dijkstra_evaluation)   
         
         # if col == -900:
         #     row = 0
