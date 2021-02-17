@@ -7,18 +7,18 @@ class Bot:
     # def __init__(self):
         # print('bliep bloop')
 
-    def Do_move(self, board, bot_type, search_depth, use_Dijkstra):
+    def Do_move(self, board, bot, search_depth, use_Dijkstra):
         self.board_dimension = board.shape[0] - 1 #TODO: should be in init
         # print(self.board_dimension)
                 
-        if bot_type == 'random':
+        if bot.algorithm == 'random':
             return self.Random_bot(board, search_depth)
-        elif bot_type == 'alphabeta':
+        elif bot.algorithm == 'alphabeta':
             return self.Alpha_Beta_bot(board, search_depth, use_Dijkstra)
-        elif bot_type == 'mcts':
+        elif bot.algorithm == 'mcts':
             return self.Mcts_bot(board)
         else:
-            raise Exception('The bot type {0} is not recognised. \nPlease choose random, alphabeta or mcts.'.format(bot_type)) 
+            raise Exception('The bot type {0} is not recognised. \nPlease choose random, alphabeta or mcts.'.format(bot.algorithm)) 
 
     def Random_bot(self, board, search_depth):
         """Simple bot that checks for an empty space on the board. Returns this in row column format.
