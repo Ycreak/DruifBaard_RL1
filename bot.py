@@ -10,7 +10,7 @@ class Bot:
     def Do_move(self, board, bot_type, search_depth, use_Dijkstra):
         self.board_dimension = board.shape[0] - 1 #TODO: should be in init
         # print(self.board_dimension)
-        
+                
         if bot_type == 'random':
             return self.Random_bot(board, search_depth)
         elif bot_type == 'alphabeta':
@@ -61,11 +61,11 @@ class Bot:
         winner = self.check_winning(board)
         if winner == 1:
             child = [-800, -800]
-            return 800, child
+            return 10, child
 
         if winner == 2:
             child = [-900, -900]
-            return -800, child
+            return -10, child
 
         if depth == 0:
             value = self.evaluate(board, use_Dijkstra)
@@ -109,14 +109,16 @@ class Bot:
 
     def evaluate(self, board, use_Dijkstra):
         if use_Dijkstra:
-            value = self.dijkstra(board)            
-            return self.dijkstra(board)
+            player1 = self.dijkstra(board, 1) 
+            player2 = self.dijkstra(board, 2)
+
+            return player2 - player1
         else:
             return randrange(-10, 10)
 
-    def dijkstra(self, board):
+    def dijkstra(self, board, player):
 
-        width = self.board_dimension #TODO: Should be taken from rest of program
+        width = self.board_dimension+1
         #Begin point [-5, -5]
         #End point   [-10, -10]
 
@@ -134,25 +136,41 @@ class Bot:
             shortest_path[row, col] = float('inf')
             unvisited.append([row, col])
             adjacent[row, col] = []
-            if(row == 0):
-                adjacent[-5, -5].append([row, col])
-                adjacent[row, col].append([-5, -5])
-            if(row == width-1):
-                adjacent[-10, -10].append([row, col])
-                adjacent[row, col].append([-10, -10])
+            if(player == 1):
+                if(row == 0):
+                    adjacent[-5, -5].append([row, col])
+                    adjacent[row, col].append([-5, -5])
+                if(row == width-1):
+                    adjacent[-10, -10].append([row, col])
+                    adjacent[row, col].append([-10, -10])
+            else:
+                if(col == 0):
+                    adjacent[-5, -5].append([row, col])
+                    adjacent[row, col].append([-5, -5])
+                if(col == width-1):
+                    adjacent[-10, -10].append([row, col])
+                    adjacent[row, col].append([-10, -10])
         
-        for tile in np.argwhere(board == 1):
+        for tile in np.argwhere(board == player):
             row, col = tile
             shortest_path[row, col] = float('inf')
             unvisited.append([row, col])
             adjacent[row, col] = []
             taken.append([row, col])
-            if(row == 0):
-                adjacent[-5, -5].append([row, col])
-                adjacent[row, col].append([-5, -5])
-            if(row == width-1):
-                adjacent[-10, -10].append([row, col])
-                adjacent[row, col].append([-10, -10])
+            if player == 1:
+                if(row == 0):
+                    adjacent[-5, -5].append([row, col])
+                    adjacent[row, col].append([-5, -5])
+                if(row == width-1):
+                    adjacent[-10, -10].append([row, col])
+                    adjacent[row, col].append([-10, -10])
+            else:
+                if(col == 0):
+                    adjacent[-5, -5].append([row, col])
+                    adjacent[row, col].append([-5, -5])
+                if(col == width-1):
+                    adjacent[-10, -10].append([row, col])
+                    adjacent[row, col].append([-10, -10])
         
         shortest_path[-10, -10] = float('inf')
         unvisited.append([-10, -10])
@@ -232,7 +250,7 @@ class Bot:
         return 0
     
     def winning_state(self, taken, player_number):
-        width = self.board_dimension #TODO: Should be taken from rest of program
+        width = self.board_dimension+1
 
         adjacent_offset = [
             [0, -1], # topleft
