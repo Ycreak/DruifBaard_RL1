@@ -92,7 +92,7 @@ class Bot:
         """        
 
         if use_tt:
-            succes, value, space = self.Lookup(board)
+            succes, value, space = self.Lookup(board, depth)
             if succes:
                 return value, space[0], space[1]
 
@@ -101,7 +101,7 @@ class Bot:
             space = [-700, -700]
 
             if use_tt:
-                self.Store(board, 0, space[0], space[1])
+                self.Store(board, 0, space[0], space[1], depth)
 
             return 0, space
 
@@ -111,7 +111,7 @@ class Bot:
             space = [-800, -800]
 
             if use_tt:
-                self.Store(board, 10, space[0], space[1])
+                self.Store(board, 10, space[0], space[1], depth)
 
             return 10, space
 
@@ -120,7 +120,7 @@ class Bot:
             space = [-900, -900]
 
             if use_tt:
-                self.Store(board, -10, space[0], space[1])
+                self.Store(board, -10, space[0], space[1], depth)
 
             return -10, space
 
@@ -130,12 +130,12 @@ class Bot:
             space = [-100, -100]
 
             if use_tt:
-                self.Store(board, value, space[0], space[1])
+                self.Store(board, value, space[0], space[1], depth)
 
             return value, space
         
         # If it is the turn of the maximizing player
-        if(max_player):
+        if max_player:
             max_value = float('-inf')
             max_space = [-200, -200]
             spaces = np.argwhere(board == 0)
@@ -147,7 +147,7 @@ class Bot:
                 row, col = space
                 copy_board[row, col] = 1
 
-                value, best_space = self.Minimax(copy_board, depth-1, alpha, beta, False, use_dijkstra, use_tt)
+                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, False, use_dijkstra, use_tt)
                 
                 if value > max_value:
                     max_value = value
@@ -159,7 +159,7 @@ class Bot:
                     break
             
             if use_tt:
-                self.Store(board, max_value, max_space[0], max_space[1])
+                self.Store(board, max_value, max_space[0], max_space[1], depth)
 
             return max_value, max_space
         
@@ -176,7 +176,7 @@ class Bot:
                 row, col = space
                 copy_board[row, col] = 2
 
-                value, best_space = self.Minimax(copy_board, depth-1, alpha, beta, True, use_dijkstra, use_tt)
+                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, True, use_dijkstra, use_tt)
 
                 if value < min_value:
                     min_value = value
@@ -188,7 +188,7 @@ class Bot:
                     break
             
             if use_tt:
-                self.Store(board, min_value, min_space[0], min_space[1])
+                self.Store(board, min_value, min_space[0], min_space[1], depth)
 
             return min_value, min_space
 
@@ -233,6 +233,12 @@ class Bot:
 
         board_dimension = self.board_dimension + 1
 
+        #[-5, -5] is the begin node, [-10, -10] is the end node
+        #The begin node is connected to all spaces on the top row (for player 1) or the first column (for player 2) 
+        #The end node is connected to all spaces on the bottom row (for player 1) or the last column (for player 2) 
+        #So the algorithm seeks the shortest path from [-5, -5] to [-10, -10]
+
+
         #The dictionary of shortest paths. {[x, y]: shortest path from [-5, -5] to [x, y]}
         shortest_path = {}
         shortest_path[-5, -5] = 0
@@ -264,27 +270,27 @@ class Bot:
             #Add all the empty spaces to the dictionary of adjacent spaces
             adjacent_spaces[row, col] = []
 
-            if(player_number == 1):
-                if(row == 0):
+            if player_number == 1:
+                if row == 0:
                     
                     #Atatch [-5, -5] to all the empty spaces on the top row
                     adjacent_spaces[-5, -5].append([row, col])
                     adjacent_spaces[row, col].append([-5, -5])
 
-                if(row == board_dimension-1):
+                if row == board_dimension - 1:
 
                     #Atatch [-10, -10] to all the empty spaces on the bottom row
                     adjacent_spaces[-10, -10].append([row, col])
                     adjacent_spaces[row, col].append([-10, -10])
 
             else:
-                if(col == 0):
+                if col == 0:
 
                     #Atatch [-5, -5] to all the empty spaces in the first column
                     adjacent_spaces[-5, -5].append([row, col])
                     adjacent_spaces[row, col].append([-5, -5])
 
-                if(col == board_dimension-1):
+                if col == board_dimension - 1:
 
                     #Atatch [-10, -10] to all the empty spaces in the last column
                     adjacent_spaces[-10, -10].append([row, col])
@@ -307,26 +313,26 @@ class Bot:
             taken_spaces.append([row, col])
 
             if player_number == 1:
-                if(row == 0):
+                if row == 0:
 
                     #Atatch [-5, -5] to the taken spaces on the top row
                     adjacent_spaces[-5, -5].append([row, col])
                     adjacent_spaces[row, col].append([-5, -5])
 
-                if(row == board_dimension-1):
+                if row == board_dimension - 1:
 
                     #Atatch [-10, -10] to the taken spaces on the bottom row
                     adjacent_spaces[-10, -10].append([row, col])
                     adjacent_spaces[row, col].append([-10, -10])
 
             else:
-                if(col == 0):
+                if col == 0:
 
                     #Atatch [-5, -5] to the taken spaces in the first column
                     adjacent_spaces[-5, -5].append([row, col])
                     adjacent_spaces[row, col].append([-5, -5])
 
-                if(col == board_dimension-1):
+                if col == board_dimension - 1:
 
                     #Atatch [-10, -10] to the taken spaces in the last column
                     adjacent_spaces[-10, -10].append([row, col])
@@ -423,11 +429,11 @@ class Bot:
         
         return adjacent_spaces
 
-    def Lookup(self, board):
+    def Lookup(self, board, depth):
 
         return False, -690, [-690, -690]
 
-    def Store(self, board, value, row, col):
+    def Store(self, board, value, row, col, depth):
 
         return
 
@@ -508,7 +514,7 @@ class Bot:
 
                     contains_begin = True
 
-                if col == board_dimension -1:
+                if col == board_dimension - 1:
                     contains_end = True
 
             else:
@@ -519,7 +525,7 @@ class Bot:
 
                     contains_begin = True
 
-                if row == board_dimension -1:
+                if row == board_dimension - 1:
                     contains_end = True
 
         #If there is no taken space in the first and last row or column a winning state is impossible
@@ -546,10 +552,10 @@ class Bot:
 
                         #If we have reached the other side of the board, the game is won
                         if player_number == 2:
-                            if col == board_dimension -1:
+                            if col == board_dimension - 1:
                                 return True
                         else:
-                            if row == board_dimension -1:
+                            if row == board_dimension - 1:
                                 return True
         
         #If we never reached the other side of the board the game is not won by this player
