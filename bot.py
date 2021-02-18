@@ -14,7 +14,7 @@ class Bot:
         if bot.algorithm == 'random':
             return self.Random_bot(board)
         elif bot.algorithm == 'alphabeta':
-            return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_Dijkstra)
+            return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_dijkstra, bot.use_tt)
         elif bot.algorithm == 'mcts':
             return self.Mcts_bot(board)
         else:
@@ -37,13 +37,13 @@ class Bot:
 
         return row, col
 
-    def Alpha_Beta_bot(self, board, search_depth, use_dijkstra_evaluation):
+    def Alpha_Beta_bot(self, board, search_depth, use_dijkstra, use_tt):
         """Bot that returns an empty space on the board chosen by a Minimax algorithm using alpha-beta pruning
 
         Args:
             board (np array): the current playboard
             search_depth (int): the number of rounds forward the Minimax algorithm should look
-            use_dijkstra_evaluation (bool): True if we use the Dijkstra evaluation method, 
+            use_dijkstra (bool): True if we use the Dijkstra evaluation method, 
                 False if we use the random evaluation method
 
         Returns:
@@ -65,12 +65,12 @@ class Bot:
         alpha = float('-inf')
         beta = float('inf')
 
-        value, best_space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra_evaluation)
+        value, best_space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, use_tt)
         row, col = best_space
 
         return row, col
 
-    def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra_evaluation):
+    def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra, use_tt):
         """Minimax algorithm. 
             The algorithm returns the value of the current playstate and the best space in this state.
 
@@ -81,34 +81,57 @@ class Bot:
             beta (int):  the current maximum value of the minimizing player in the alpha-beta pruning
             max_player (bool): True if it is the turn of player 1, the maximizing player in the evaluation, 
                 False if it is the turn of player 2.
-            use_dijkstra_evaluation (bool): True if we use the Dijkstra evaluation method.
+            use_dijkstra (bool): True if we use the Dijkstra evaluation method.
                 False if we use the random evaluation method
+            use_dijkstra (bool): True if we use transposition tables to Store and load previous results from
+                False if we do not use transposition tables
 
         Returns:
             int, ints: The first int returned is the value of the evaluation. 
                 The second and third int is the position to play
         """        
 
+        if use_tt:
+            succes, value, space = self.Lookup(board)
+            if succes:
+                return value, space[0], space[1]
+
         #If the gameboard is full
         if np.all(board):
             space = [-700, -700]
+
+            if use_tt:
+                self.Store(board, 0, space[0], space[1])
+
             return 0, space
 
         # If player 1 has won the game
         winner = self.Check_winning(board)
         if winner == 1:
             space = [-800, -800]
+
+            if use_tt:
+                self.Store(board, 10, space[0], space[1])
+
             return 10, space
 
         # If player 2 has won the game
         if winner == 2:
             space = [-900, -900]
+
+            if use_tt:
+                self.Store(board, -10, space[0], space[1])
+
             return -10, space
 
         # If the algorithm has reached the search depth
         if depth == 0:
-            value = self.Evaluate_game_state(board, use_dijkstra_evaluation)
+            value = self.Evaluate_game_state(board, use_dijkstra)
             space = [-100, -100]
+
+            if use_tt:
+                self.Store(board, value, space[0], space[1])
+
             return value, space
         
         # If it is the turn of the maximizing player
@@ -124,7 +147,7 @@ class Bot:
                 row, col = space
                 copy_board[row, col] = 1
 
-                value, best_space = self.Minimax(copy_board, depth-1, alpha, beta, False, use_dijkstra_evaluation)
+                value, best_space = self.Minimax(copy_board, depth-1, alpha, beta, False, use_dijkstra, use_tt)
                 
                 if value > max_value:
                     max_value = value
@@ -134,6 +157,9 @@ class Bot:
                 alpha = max(alpha, value)
                 if beta <= alpha:
                     break
+            
+            if use_tt:
+                self.Store(board, max_value, max_space[0], max_space[1])
 
             return max_value, max_space
         
@@ -150,7 +176,7 @@ class Bot:
                 row, col = space
                 copy_board[row, col] = 2
 
-                value, best_space = self.Minimax(copy_board, depth-1, alpha, beta, True, use_dijkstra_evaluation)
+                value, best_space = self.Minimax(copy_board, depth-1, alpha, beta, True, use_dijkstra, use_tt)
 
                 if value < min_value:
                     min_value = value
@@ -160,16 +186,19 @@ class Bot:
                 beta = min(beta, value)
                 if beta <= alpha:
                     break
+            
+            if use_tt:
+                self.Store(board, min_value, min_space[0], min_space[1])
 
             return min_value, min_space
 
-    def Evaluate_game_state(self, board, use_dijkstra_evaluation):
+    def Evaluate_game_state(self, board, use_dijkstra):
         """The evalutation function returns a value for the current state of the game. 
             A higher score is positive for player 1, a lower score is positive for player 2.
 
         Args:
             board (np array): the current playboard
-            use_dijkstra_evaluation (bool): True if we use the Dijkstra evaluation method.
+            use_dijkstra (bool): True if we use the Dijkstra evaluation method.
                 False if we use the random evaluation method
 
         Returns:
@@ -177,7 +206,7 @@ class Bot:
         """        
 
         #If we use the Dijkstra evaluation method
-        if use_dijkstra_evaluation:
+        if use_dijkstra:
             score_player1 = self.Dijkstra(board, 1) 
             score_player2 = self.Dijkstra(board, 2)
 
@@ -393,6 +422,14 @@ class Bot:
                     adjacent_spaces[space].append(adjacent_coordinate)
         
         return adjacent_spaces
+
+    def Lookup(self, board):
+
+        return False, -690, [-690, -690]
+
+    def Store(self, board, value, row, col):
+
+        return
 
     def Check_winning(self, board):
         """Returns if one of the players has won the game 
