@@ -65,12 +65,17 @@ class Bot:
         alpha = float('-inf')
         beta = float('inf')
 
-        value, best_space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, use_tt)
+        if use_tt:
+            self.hash_table = [[[random.randint(1, 2**(board.shape[0] * board.shape[0]) - 1) for x in range(3)] for y in range(board.shape[0])] for z in range(board.shape[0])] 
+            value, best_space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1)
+        else:
+            value, best_space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra)
+            
         row, col = best_space
 
         return row, col
 
-    def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra, use_tt):
+    def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra):
         """Minimax algorithm. 
             The algorithm returns the value of the current playstate and the best space in this state.
 
@@ -91,47 +96,26 @@ class Bot:
                 The second and third int is the position to play
         """        
 
-        if use_tt:
-            succes, value, space = self.Lookup(board, depth)
-            if succes:
-                return value, space[0], space[1]
-
         #If the gameboard is full
         if np.all(board):
             space = [-700, -700]
-
-            if use_tt:
-                self.Store(board, 0, space[0], space[1], depth)
-
             return 0, space
 
         # If player 1 has won the game
         winner = self.Check_winning(board)
         if winner == 1:
             space = [-800, -800]
-
-            if use_tt:
-                self.Store(board, 10, space[0], space[1], depth)
-
             return 10, space
 
         # If player 2 has won the game
         if winner == 2:
             space = [-900, -900]
-
-            if use_tt:
-                self.Store(board, -10, space[0], space[1], depth)
-
             return -10, space
 
         # If the algorithm has reached the search depth
         if depth == 0:
             value = self.Evaluate_game_state(board, use_dijkstra)
             space = [-100, -100]
-
-            if use_tt:
-                self.Store(board, value, space[0], space[1], depth)
-
             return value, space
         
         # If it is the turn of the maximizing player
@@ -147,7 +131,7 @@ class Bot:
                 row, col = space
                 copy_board[row, col] = 1
 
-                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, False, use_dijkstra, use_tt)
+                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, False, use_dijkstra)
                 
                 if value > max_value:
                     max_value = value
@@ -157,9 +141,6 @@ class Bot:
                 alpha = max(alpha, value)
                 if beta <= alpha:
                     break
-            
-            if use_tt:
-                self.Store(board, max_value, max_space[0], max_space[1], depth)
 
             return max_value, max_space
         
@@ -176,7 +157,119 @@ class Bot:
                 row, col = space
                 copy_board[row, col] = 2
 
-                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, True, use_dijkstra, use_tt)
+                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, True, use_dijkstra)
+
+                if value < min_value:
+                    min_value = value
+                    min_space = space
+
+                #Alpha-beta pruning
+                beta = min(beta, value)
+                if beta <= alpha:
+                    break
+
+            return min_value, min_space
+
+    def Minimax_tt(self, board, depth, alpha, beta, max_player, use_dijkstra, hashed_board):
+        """Minimax algorithm. 
+            The algorithm returns the value of the current playstate and the best space in this state.
+
+        Args:
+            board (np array): the current playboard
+            depth (int): the number of rounds forward the min max algorithm should look
+            alpha (int): the current minimum value of the maximizing player in the alpha-beta pruning
+            beta (int):  the current maximum value of the minimizing player in the alpha-beta pruning
+            max_player (bool): True if it is the turn of player 1, the maximizing player in the evaluation, 
+                False if it is the turn of player 2.
+            use_dijkstra (bool): True if we use the Dijkstra evaluation method.
+                False if we use the random evaluation method
+            use_dijkstra (bool): True if we use transposition tables to Store and load previous results from
+                False if we do not use transposition tables
+
+        Returns:
+            int, ints: The first int returned is the value of the evaluation. 
+                The second and third int is the position to play
+        """        
+
+        if hashed_board == -1:
+            hashed_board = self.Hash_board(board)
+            
+        succes, value, space = self.Lookup(board, depth)
+        if succes:
+            return value, space[0], space[1]
+
+        #If the gameboard is full
+        if np.all(board):
+            space = [-700, -700]
+            self.Store(hashed_board, 0, space[0], space[1], depth)
+            return 0, space
+
+        # If player 1 has won the game
+        winner = self.Check_winning(board)
+        if winner == 1:
+            space = [-800, -800]
+            self.Store(hashed_board, 10, space[0], space[1], depth)
+            return 10, space
+
+        # If player 2 has won the game
+        if winner == 2:
+            space = [-900, -900]
+            self.Store(hashed_board, -10, space[0], space[1], depth)
+            return -10, space
+
+        # If the algorithm has reached the search depth
+        if depth == 0:
+            value = self.Evaluate_game_state(board, use_dijkstra)
+            space = [-100, -100]
+            self.Store(hashed_board, value, space[0], space[1], depth)
+            return value, space
+        
+        # If it is the turn of the maximizing player
+        if max_player:
+            max_value = float('-inf')
+            max_space = [-200, -200]
+            spaces = np.argwhere(board == 0)
+            
+            for space in spaces:
+                #Make a copy of the game board and take the space in that board
+                copy_board = copy.deepcopy(board)
+                row, col = space
+                copy_board[row, col] = 1
+                
+                hashed_board_copy = hashed_board
+                hashed_board_copy ^= self.hash_table[row][col][1]
+
+                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, False, use_dijkstra, hashed_board_copy)
+                
+                if value > max_value:
+                    max_value = value
+                    max_space = space
+                
+                #Alpha-beta pruning
+                alpha = max(alpha, value)
+                if beta <= alpha:
+                    break
+            
+            self.Store(hashed_board, max_value, max_space[0], max_space[1], depth)
+            return max_value, max_space
+        
+        # If it is the turn of the minimizing player
+        else: 
+            min_value = float('inf')
+            min_space = [-300, -300]
+            spaces = np.argwhere(board == 0)
+
+            for space in spaces:
+
+                #Make a copy of the game board and take the space in that board
+                copy_board = copy.deepcopy(board)
+                row, col = space
+                copy_board[row, col] = 2
+
+                hashed_board_copy = hashed_board
+                hashed_board_copy ^= self.hash_table[row][col][2]
+
+                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, True, use_dijkstra, hashed_board_copy)
 
                 if value < min_value:
                     min_value = value
@@ -187,9 +280,7 @@ class Bot:
                 if beta <= alpha:
                     break
             
-            if use_tt:
-                self.Store(board, min_value, min_space[0], min_space[1], depth)
-
+            self.Store(hashed_board, min_value, min_space[0], min_space[1], depth)
             return min_value, min_space
 
     def Evaluate_game_state(self, board, use_dijkstra):
@@ -436,6 +527,20 @@ class Bot:
     def Store(self, board, value, row, col, depth):
 
         return
+
+    def Hash_board(self, board):
+        board_dimension = self.board_dimension + 1
+
+        hashed_board = 0
+        for row in range(board_dimension):
+            for col in range(board_dimension):
+
+                if board[row][col] != 0:
+
+                    space = board[row][col]
+                    hashed_board ^= self.hash_table[row][col][space]
+
+        return hashed_board
 
     def Check_winning(self, board):
         """Returns if one of the players has won the game 
