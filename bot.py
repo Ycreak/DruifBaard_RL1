@@ -7,10 +7,11 @@ class Bot:
     # def __init__(self):
         # print('bliep bloop')
 
-    def Do_move(self, board, bot):
+    def Do_move(self, board, bot): 
+
         self.board_dimension = board.shape[0] - 1 #TODO: should be in init
         # print(self.board_dimension)
-                
+
         if bot.algorithm == 'random':
             return self.Random_bot(board)
         elif bot.algorithm == 'alphabeta':
@@ -66,7 +67,7 @@ class Bot:
         beta = float('inf')
 
         if use_tt:
-            self.hash_table = [[[random.randint(1, 2**(board.shape[0] * board.shape[0]) - 1) for x in range(3)] for y in range(board.shape[0])] for z in range(board.shape[0])] 
+            self.Initialise_tt()
             value, best_space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1)
         else:
             value, best_space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra)
@@ -194,34 +195,37 @@ class Bot:
         if hashed_board == -1:
             hashed_board = self.Hash_board(board)
             
-        succes, value, space = self.Lookup(board, depth)
+        succes, value, space = self.Lookup(hashed_board, depth)
         if succes:
-            return value, space[0], space[1]
+            return value, space
 
         #If the gameboard is full
         if np.all(board):
+            value = 0
             space = [-700, -700]
-            self.Store(hashed_board, 0, space[0], space[1], depth)
-            return 0, space
+            self.Store(hashed_board, depth, value, space)
+            return value, space
 
         # If player 1 has won the game
         winner = self.Check_winning(board)
         if winner == 1:
+            value = 10
             space = [-800, -800]
-            self.Store(hashed_board, 10, space[0], space[1], depth)
-            return 10, space
+            self.Store(hashed_board, depth, value, space)
+            return value, space
 
         # If player 2 has won the game
         if winner == 2:
+            value = -10
             space = [-900, -900]
-            self.Store(hashed_board, -10, space[0], space[1], depth)
-            return -10, space
+            self.Store(hashed_board, depth, value, space)
+            return value, space
 
         # If the algorithm has reached the search depth
         if depth == 0:
             value = self.Evaluate_game_state(board, use_dijkstra)
             space = [-100, -100]
-            self.Store(hashed_board, value, space[0], space[1], depth)
+            self.Store(hashed_board, depth, value, space)
             return value, space
         
         # If it is the turn of the maximizing player
@@ -250,7 +254,7 @@ class Bot:
                 if beta <= alpha:
                     break
             
-            self.Store(hashed_board, max_value, max_space[0], max_space[1], depth)
+            self.Store(hashed_board, depth, max_value, max_space)
             return max_value, max_space
         
         # If it is the turn of the minimizing player
@@ -280,7 +284,7 @@ class Bot:
                 if beta <= alpha:
                     break
             
-            self.Store(hashed_board, min_value, min_space[0], min_space[1], depth)
+            self.Store(hashed_board, depth, min_value, min_space)
             return min_value, min_space
 
     def Evaluate_game_state(self, board, use_dijkstra):
@@ -520,12 +524,24 @@ class Bot:
         
         return adjacent_spaces
 
-    def Lookup(self, board, depth):
+    def Initialise_tt(self):
+        board_dimension = self.board_dimension + 1
+
+        self.transposition_table = {}
+        self.hash_table = [[[random.randint(1, 2**(board_dimension * board_dimension) - 1) for x in range(3)] for y in range(board_dimension)] for z in range(board_dimension)] 
+        return
+
+    def Lookup(self, hashed_board, depth):
+        if (hashed_board, depth) in self.transposition_table:
+            value, row, col = self.transposition_table[hashed_board, depth]
+            return True, value, [row, col]
 
         return False, -690, [-690, -690]
 
-    def Store(self, board, value, row, col, depth):
-
+    def Store(self, hashed_board, depth, value, space):
+        
+        row, col = space
+        self.transposition_table[(hashed_board, depth)] = [value, row, col]
         return
 
     def Hash_board(self, board):
