@@ -3,6 +3,42 @@ import copy
 import numpy as np
 from random import randrange
 
+class Node:
+    def __init__(self, board, player, parent, row, col):
+        self.player = player    # The player that has to make the next turn
+        self.board = board      # Board for this playstate
+        self.n = 0              # Number of visits
+        self.q = 0              # Value for this node
+        self.children = []      # The children of this node
+        self.parent = parent    # The parent of this node
+
+        self.row = row          # The row of the move corresponding to this state
+        self.col = col          # ^ But column
+    
+    def fully_expanded(self): # But this is also dependent on the fact if there has been a game won
+        """Returns if a node is fully expanded or not
+
+        Returns:
+            bool: True if there should be no more children, else false
+        """        
+        return len(self.children) >= len(np.argwhere(self.board == 0))
+    
+    def best_child(self, c_param=1.0):
+        """Calculates UCT and determines the best child node
+
+        Args:
+            c_param (float, optional): A turing parameter. Defaults to 1.0.
+
+        Returns:
+            Node: The child node with the highest UCT score
+        """         
+        choices_weights = [
+            (c.q / c.n) + c_param * np.sqrt((np.log(self.n) / c.n)) if c.n > 0 else 0
+            for c in self.children
+        ]
+        return self.children[np.argmax(choices_weights)]
+
+
 class Bot:
     # def __init__(self):
         # print('bliep bloop')
@@ -16,7 +52,7 @@ class Bot:
         elif bot.algorithm == 'alphabeta':
             return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_Dijkstra)
         elif bot.algorithm == 'mcts':
-            return self.Mcts_bot(board)
+            return self.Mcts_bot(board, bot.iterations)
         else:
             raise Exception('The bot type {0} is not recognised. \nPlease choose random, alphabeta or mcts.'.format(bot.algorithm)) 
 
@@ -518,6 +554,145 @@ class Bot:
         #If we never reached the other side of the board the game is not won by this player
         return False
 
-    def Mcts_bot(self, board):
+    def is_terminal(self, node):
+        """Returns whether a node has a terminal game state on the board
 
-        return   
+        Args:
+            node (Node): The node
+
+        Returns:
+            int: 0 if not, 1 if player 1 won, 2 if player 2 won, 3 if the board is full
+        """
+        player_won = self.Check_winning(node.board)
+
+        if player_won != 0:
+            return player_won
+        elif len(np.argwhere(node.board == 0)) == 0:
+            return 3
+        else:
+            return 0
+    
+    def Create_Initial_State(self, board, player):
+        """Creates the initial tree
+
+        Args:
+            board (nparray): The starting board
+            player (int): The player that has to make the next move
+
+        Returns:
+            Node: The root node of the initial tree
+        """        
+        root = Node(board, player, parent=None, row=None, col=None)
+        while not root.fully_expanded():
+            self.expand(root)
+        return root
+
+    def expand(self, node):
+        """Expands a node, by adding one possible next game state as one of its children
+
+        Args:
+            node (Node): The node to expand
+
+        Returns:
+            Node: The newly created node
+        """        
+        # Select a random empty field
+        spaces = np.argwhere(node.board == 0)
+        space = spaces[np.random.choice(range(len(spaces)))]
+        copy_board = copy.deepcopy(node.board)
+        row, col = space
+
+        # Play this field, and create the new child
+        if node.player == 1:
+            copy_board[row, col] = 1
+            node.children.append(Node(board=copy_board, player=2, parent=node, row=row, col=col))
+        else:
+            copy_board[row, col] = 2
+            node.children.append(Node(board=copy_board, player=1, parent=node, row=row, col=col))
+        return node.children[-1]
+    
+    def select(self, node):
+        """Traverse the tree to find the most promising leaf and expand it (if possible)
+
+        Args:
+            node (Node): The root node
+
+        Returns:
+            Node: The expanded node of the most promising leaf
+        """        
+        while node.fully_expanded() and not (self.is_terminal(node) > 0):
+            node = node.best_child()
+        
+        if not (self.is_terminal(node) > 0):
+            return self.expand(node) # The node can be expanded
+        else:
+            return node # The node is terminal
+    
+    def rollout(self, node, player):
+        """For a certain node, perform exactly one complete random playout
+
+        Args:
+            node (Node): The leaf node in the tree
+
+        Returns:
+            int: The penalty for the playout (addition/draw/punishment)
+        """        
+        simulation_board = copy.deepcopy(node.board) # Board to play a random simulation on
+        simulation_player = node.player              # Player that has to make the next move
+        while 1: # Keep playing until...
+            final = self.Check_winning(simulation_board)    
+            if final != 0:
+                if final == player:
+                    return 1 # The player won
+                else:
+                    return -1 # The player lost
+            elif (len(np.argwhere(node.board == 0)) == 0):
+                return 0 # It is a draw
+
+            # Take a random non-zero field and play it
+            indeces = np.argwhere(node.board == 0)
+            row, col = random.choice(indeces)
+            simulation_board[row, col] = simulation_player
+
+            # Switch players and continue
+            if simulation_player == 1:
+                simulation_player = 2
+            else:
+                simulation_player = 1
+    
+    def backpropagate(self, node, result):
+        """Propagates a loss/win/draw all the way up to the root node
+
+        Args:
+            node (Node): Node to backpropagate
+            result (int): The rollout value (1,0,-1)
+        """        
+        node.n = node.n + 1         # Add an extra visit
+        node.q = node.q + result    # Add the rollout result
+        if node.parent == None:
+            return
+        else:
+            self.backpropagate(node.parent, result)
+    
+    def Mcts_bot(self, board, iterations):
+        # Get all the empty spaces
+        empty_spaces = np.argwhere(board == 0)
+
+        # If the number of empty spaces is odd we are player 1
+        if int((empty_spaces.size/2)) % 2 == 1:
+            maximizing_player = 1
+        else:
+            maximizing_player = 2
+        
+        copy_board = copy.deepcopy(board)
+        root = self.Create_Initial_State(copy_board, maximizing_player)
+
+        i = 0
+        while i < iterations:
+            leaf = self.select(root)
+            simulation_result = self.rollout(leaf, maximizing_player)
+            self.backpropagate(leaf, simulation_result)
+            i = i + 1
+        best_child = root.best_child()
+        return best_child.row, best_child.col
+

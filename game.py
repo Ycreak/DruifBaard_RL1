@@ -21,11 +21,11 @@ class Game(QGameboard):
         # Game Parameters
         self.board_dimension = 4
         # Algorithms for the bots
-        self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_Dijkstra=True)
+        self.bot1 = MyBot('mcts1', 'mcts', search_depth=3, use_Dijkstra=True)
         self.bot2 = MyBot('rnd', 'random')
 
-        self.tourney_rounds = 1
-        self.perform_experiments = True
+        self.tourney_rounds = 5
+        self.perform_experiments = False
 
         if self.perform_experiments:
             self.Perform_experiments()
@@ -286,10 +286,11 @@ class Game(QGameboard):
 
 
 class MyBot():
-  def __init__(self, name, algorithm, search_depth=-1, use_Dijkstra=False):
+  def __init__(self, name, algorithm, search_depth=-1, use_Dijkstra=False, iterations=700):
     self.name = name
     self.rating = 25
     self.search_depth = search_depth
     self.use_Dijkstra = use_Dijkstra
+    self.iterations = iterations
     self.algorithm = algorithm
 
