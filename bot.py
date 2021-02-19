@@ -49,6 +49,7 @@ class Bot:
                 False if we use the random evaluation method
             use_tt (bool): True if we use transposition tables to Store_result and load previous results from, 
                 False if we do not
+            id_time_limit (float): time limit for iterative deepening, 0 if we dont want to use iterative deepening
 
         Returns:
             ints: of position to play
