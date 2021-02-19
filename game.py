@@ -21,7 +21,7 @@ class Game(QGameboard):
         # Game Parameters
         self.board_dimension = 6
         # Algorithms for the bots
-        self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=True)
+        self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=True, id_time_limit = 1)
         self.bot2 = MyBot('rnd', 'random')
 
         self.perform_experiments = True
@@ -181,9 +181,9 @@ class Game(QGameboard):
 
         # Create the players        
         b1 = MyBot('rnd', 'random')
-        b2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False)
-        b3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False)
-        b4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False)
+        b2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
+        b3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
+        b4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
 
         # Create Pandas Dataframe
         column_names = [b1.name, b2.name, b3.name, b4.name]
@@ -250,13 +250,13 @@ class MyBot():
     """Bot Class. Has all info a bot needs. Can be given to the Bot class in bot.py
     """    
     def __init__(self, name, algorithm, search_depth=-1, use_dijkstra=False,
-            ID=False, use_tt=False):
+            id_time_limit=0, use_tt=False):
         self.name = name
         self.rating = 25
         self.search_depth = search_depth
         self.use_dijkstra = use_dijkstra
         self.algorithm = algorithm
 
-        self.ID = ID
+        self.id_time_limit = id_time_limit
         self.use_tt = use_tt
 

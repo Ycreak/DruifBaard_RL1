@@ -2,6 +2,7 @@ import random
 import copy
 import numpy as np
 from random import randrange
+import time
 
 class Bot:
     # def __init__(self):
@@ -15,7 +16,7 @@ class Bot:
         if bot.algorithm == 'random':
             return self.Random_bot(board)
         elif bot.algorithm == 'alphabeta':
-            return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_dijkstra, bot.use_tt)
+            return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_dijkstra, bot.use_tt, bot.id_time_limit)
         elif bot.algorithm == 'mcts':
             return self.Mcts_bot(board)
         else:
@@ -38,7 +39,7 @@ class Bot:
 
         return row, col
 
-    def Alpha_Beta_bot(self, board, search_depth, use_dijkstra, use_tt):
+    def Alpha_Beta_bot(self, board, search_depth, use_dijkstra, use_tt, id_time_limit):
         """Bot that returns an empty space on the board chosen by a Minimax algorithm using alpha-beta pruning
 
         Args:
@@ -68,16 +69,42 @@ class Bot:
         alpha = float('-inf')
         beta = float('inf')
 
-        if use_tt:
-            self.Initialise_tt()
-            value, best_space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1)
-        else:
-            value, best_space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra)
+        #When the time limit is 0, we dont want to use iterative deepening
+        use_id = (id_time_limit != 0)
+
+        if use_id:
+            #Computing the end time for the search
+            begin_time = time.time()
+            end_time = begin_time + id_time_limit
             
-        row, col = best_space
+            #The initial search depth
+            depth_id = 1
 
-        return row, col
+            value = -130
+            space = [-130, -130]
 
+            self.Initialise_tt()
+
+            #Keep searching till time time is up
+            while self.StillGotTime(end_time):
+                if use_tt:
+                    value, space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1)
+                else:
+                    value, space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra)
+                
+                #Next loop we use a higer search depth
+                depth_id = depth_id + 1
+            
+        else:
+            if use_tt:
+                self.Initialise_tt()
+                value, space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1)
+            else:
+                value, space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra)
+            
+        row, col = space
+        return row, col    
+        
     def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra):
         """Minimax algorithm. 
             The algorithm returns the value of the current playstate and the best space in this state.
@@ -592,6 +619,20 @@ class Bot:
                     hashed_board ^= self.hash_table[row][col][space]
 
         return hashed_board
+
+    def StillGotTime(self, end_time):
+        """Check if there is still time left for searching
+
+        Args:
+            end_time (float): time for which the algorithm should stop searching
+
+        Returns:
+            bool: True if there is still time left,
+                False if there is no time left
+        """        
+        current_time = time.time()
+
+        return current_time < end_time
 
     def Check_winning(self, board):
         """Returns if one of the players has won the game 
