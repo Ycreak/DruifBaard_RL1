@@ -46,6 +46,8 @@ class Bot:
             search_depth (int): the number of rounds forward the Minimax algorithm should look
             use_dijkstra (bool): True if we use the Dijkstra evaluation method, 
                 False if we use the random evaluation method
+            use_tt (bool): True if we use transposition tables to Store_result and load previous results from, 
+                False if we do not
 
         Returns:
             ints: of position to play
@@ -89,11 +91,9 @@ class Bot:
                 False if it is the turn of player 2.
             use_dijkstra (bool): True if we use the Dijkstra evaluation method.
                 False if we use the random evaluation method
-            use_dijkstra (bool): True if we use transposition tables to Store and load previous results from
-                False if we do not use transposition tables
 
         Returns:
-            int, ints: The first int returned is the value of the evaluation. 
+            int, [int, int]: The first int returned is the value of the evaluation. 
                 The second and third int is the position to play
         """        
 
@@ -172,7 +172,7 @@ class Bot:
             return min_value, min_space
 
     def Minimax_tt(self, board, depth, alpha, beta, max_player, use_dijkstra, hashed_board):
-        """Minimax algorithm. 
+        """Minimax algorithm (transposition tables version). 
             The algorithm returns the value of the current playstate and the best space in this state.
 
         Args:
@@ -184,18 +184,20 @@ class Bot:
                 False if it is the turn of player 2.
             use_dijkstra (bool): True if we use the Dijkstra evaluation method.
                 False if we use the random evaluation method
-            use_dijkstra (bool): True if we use transposition tables to Store and load previous results from
-                False if we do not use transposition tables
+            hashed_board (int): A hashed version of the playboard to easily store in the transposition tables
+                -1 if the board has not been made yet
 
         Returns:
-            int, ints: The first int returned is the value of the evaluation. 
+            int, [int, int]: The first int returned is the value of the evaluation. 
                 The second and third int is the position to play
-        """        
+        """      
 
+        #If the hashed_board has not been made, make the board
         if hashed_board == -1:
             hashed_board = self.Hash_board(board)
-            
-        succes, value, space = self.Lookup(hashed_board, depth)
+        
+        #If we've seen this game state before, load the result from the transposition table 
+        succes, value, space = self.Load_result(hashed_board, depth)
         if succes:
             return value, space
 
@@ -203,7 +205,7 @@ class Bot:
         if np.all(board):
             value = 0
             space = [-700, -700]
-            self.Store(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space)
             return value, space
 
         # If player 1 has won the game
@@ -211,21 +213,21 @@ class Bot:
         if winner == 1:
             value = 10
             space = [-800, -800]
-            self.Store(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space)
             return value, space
 
         # If player 2 has won the game
         if winner == 2:
             value = -10
             space = [-900, -900]
-            self.Store(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space)
             return value, space
 
         # If the algorithm has reached the search depth
         if depth == 0:
             value = self.Evaluate_game_state(board, use_dijkstra)
             space = [-100, -100]
-            self.Store(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space)
             return value, space
         
         # If it is the turn of the maximizing player
@@ -254,7 +256,7 @@ class Bot:
                 if beta <= alpha:
                     break
             
-            self.Store(hashed_board, depth, max_value, max_space)
+            self.Store_result(hashed_board, depth, max_value, max_space)
             return max_value, max_space
         
         # If it is the turn of the minimizing player
@@ -284,7 +286,7 @@ class Bot:
                 if beta <= alpha:
                     break
             
-            self.Store(hashed_board, depth, min_value, min_space)
+            self.Store_result(hashed_board, depth, min_value, min_space)
             return min_value, min_space
 
     def Evaluate_game_state(self, board, use_dijkstra):
@@ -525,26 +527,58 @@ class Bot:
         return adjacent_spaces
 
     def Initialise_tt(self):
+        """Function to initialise the transposition table
+        TODO: This function should be run on init of the bot, not every time a move is requested
+        """
+
         board_dimension = self.board_dimension + 1
 
         self.transposition_table = {}
         self.hash_table = [[[random.randint(1, 2**(board_dimension * board_dimension) - 1) for x in range(3)] for y in range(board_dimension)] for z in range(board_dimension)] 
         return
 
-    def Lookup(self, hashed_board, depth):
+    def Load_result(self, hashed_board, depth):
+        """Check if a game state has been seen before and return it if so
+
+        Args:
+            hashed_board (int): hashed version of the game board
+            depth (int): the number of rounds forward the algorithm would have looked 
+
+        Returns:
+            [bool, int, [int, int]]: The bool: True on a succesfull load, False when the state has not been seen before
+                The first int is the value found, the last two ints are the space found
+        """        
+
         if (hashed_board, depth) in self.transposition_table:
             value, row, col = self.transposition_table[hashed_board, depth]
             return True, value, [row, col]
 
         return False, -690, [-690, -690]
 
-    def Store(self, hashed_board, depth, value, space):
-        
+    def Store_result(self, hashed_board, depth, value, space):
+        """Store a calculated value and best space for a seen gamestate
+
+        Args:
+            hashed_board (int): Hashed version of the gameboard
+            depth (int): the number of rounds forward the algorithm would have looked 
+            value (int): the calculated value of the game state
+            space ([int, int]): the calculated best move of the game state
+        """        
+      
         row, col = space
         self.transposition_table[(hashed_board, depth)] = [value, row, col]
         return
 
     def Hash_board(self, board):
+        """Hash a gameboard to a int
+
+        Args:
+            board (np array): the current playboard
+
+        Returns:
+            [int]: Hashed version of the gameboard
+        """        
+
         board_dimension = self.board_dimension + 1
 
         hashed_board = 0
@@ -552,8 +586,9 @@ class Bot:
             for col in range(board_dimension):
 
                 if board[row][col] != 0:
-
                     space = board[row][col]
+
+                    #XOR the new space over the hashed_board
                     hashed_board ^= self.hash_table[row][col][space]
 
         return hashed_board
