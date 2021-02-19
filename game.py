@@ -19,24 +19,21 @@ class Game(QGameboard):
         self.bot = Bot()
 
         # Game Parameters
-        self.board_dimension = 4
+        self.board_dimension = 6
         # Algorithms for the bots
-        self.bot1 = MyBot('mcts1', 'mcts', search_depth=3, use_Dijkstra=True)
+        self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=True, id_time_limit = 1)
         self.bot2 = MyBot('rnd', 'random')
 
-        self.tourney_rounds = 5
-        self.perform_experiments = False
+        self.perform_experiments = True
 
         if self.perform_experiments:
             self.Perform_experiments()
             print('End of experiments, shutting down.')
             exit(1)
 
-        self.Play_bot_tourney(self.tourney_rounds, self.bot1, self.bot2)
+        self.Play_single_bot_match(self.bot1, self.bot2, self.board)
 
-
-       
-    def Play_bot_tourney(self, rounds, bot1, bot2):
+    def Play_TrueSkill_match(self, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
 
         Args:
@@ -55,44 +52,19 @@ class Game(QGameboard):
         r_bot1 = Rating(bot1.rating)
         r_bot2 = Rating(bot2.rating)
 
-        print('Initial ratings:\n', bot1.name, r_bot1.mu, '\n', bot2.name, r_bot2.mu)
+        outcome = self.Play_single_bot_match(bot1, bot2, self.board) #TODO: should not be self.board ideally
+        # print('outcome', outcome)
+        if outcome == 0:
+            draws += 1
+            r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True) # it is a draw
 
-        # Pandas Dataframe
-        # column_names = [bot1.name, bot2.name]
+        elif outcome == 1:
+            bot1_wins += 1
+            r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2)
 
-        # df = pd.DataFrame(columns = column_names)
-        # start_position = {bot1.name: bot1.rating, bot2.name: bot2.rating}
-        # df = df.append(start_position, ignore_index=True)
-
-        # Lets play a few rounds
-        for _ in range(rounds):
-            outcome = self.Play_single_bot_match(bot1, bot2, self.board) #TODO: should not be self.board ideally
-            print('outcome', outcome)
-            if outcome == 0:
-                draws += 1
-                r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True) # it is a draw
-
-            elif outcome == 1:
-                bot1_wins += 1
-                r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2)
-
-            elif outcome == 2:
-                bot2_wins += 1
-                r_bot2, r_bot1 = rate_1vs1(r_bot2, r_bot1)
-
-            print('Rating', bot1.name, r_bot1.mu)
-            print('Rating', bot2.name, r_bot2.mu)            
-
-            ## Add scores to datafram
-            # new_line = {bot1.name: r_bot1.mu, bot2.name: r_bot2.mu}
-            # df = df.append(new_line, ignore_index=True)
-
-        print('\nNumber of rounds played:', rounds)
-        print(bot1.name, 'wins:', bot1_wins, '\n', bot2.name, 'wins:', bot2_wins, '\nDraws:', draws)
-        print('\nRating', bot1.name, r_bot1.mu)
-        print('Rating', bot2.name, r_bot2.mu)
-
-        # print(df)
+        elif outcome == 2:
+            bot2_wins += 1
+            r_bot2, r_bot1 = rate_1vs1(r_bot2, r_bot1) #TODO: is this good?
 
         bot1.rating = r_bot1
         bot2.rating = r_bot2
@@ -175,18 +147,23 @@ class Game(QGameboard):
         return board
 
     def Create_plot(self, df, filename):
+        """Simple function that creates a line plot of the given dataframe.
 
+        Args:
+            df (pd df): dataframe with TrueSkill scores of the bots
+            filename (string): filename to be given
+        """
         from matplotlib.ticker import MaxNLocator
-
-        trueskill_max = 35
+        # Y Cap.
+        trueskill_max = 40
 
         # Take the names of the columns and plot these
-        ax = df.plot.line(title='{0} versus {1} on {2}x{3}'.format(df.columns[0], df.columns[1], self.board_dimension, self.board_dimension))
+        ax = df.plot.line(title='Round Robin on {0}x{0}'.format(self.board_dimension+1))
         
         ax.set_xlabel("Number of rounds played")
         ax.set_ylabel("TrueSkill score")
 
-        ax.set_ylim(ymin=0)
+        # ax.set_ylim(ymin=0) # TODO: deprecated?
         
         plt.xlim([0, self.tourney_rounds])
         plt.ylim([0, trueskill_max])
@@ -198,99 +175,88 @@ class Game(QGameboard):
         plt.show()
 
     def Perform_experiments(self):
-        
+        """This class performs the experiments as required in the Assignment
+        """        
         self.tourney_rounds = 1
 
-        # Determine ELO
-        
+        # Create the players        
         b1 = MyBot('rnd', 'random')
-        b2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_Dijkstra=False)
-        b3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_Dijkstra=True)
-        b4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_Dijkstra=True)
+        b2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
+        b3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
+        b4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
 
-        # b1.rating, b4.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b4)
-        # b1.rating, b2.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b2)
-        # b1.rating, b3.rating = self.Play_bot_tourney(self.tourney_rounds, b1, b3)
+        # Create Pandas Dataframe
+        column_names = [b1.name, b2.name, b3.name, b4.name]
+        df = pd.DataFrame(columns = column_names)
+        start_position = {b1.name : b1.rating, b2.name : b2.rating, b3.name : b3.rating,
+            b4.name : b4.rating}
+        df = df.append(start_position, ignore_index=True)
 
+        # TODO: Should be using args*
+        for i in range(self.tourney_rounds):
+            print("Round", i)
+            # Play a round robin between the players
+            b1, b2, b3, b4 = self.Play_round_robin(b1, b2, b3, b4)
+
+            # Add scores to dataframe
+            new_line = {b1.name : b1.rating.mu, b2.name : b2.rating.mu, b3.name : b3.rating.mu,
+                b4.name : b4.rating.mu}
+            df = df.append(new_line, ignore_index=True)
+
+        print(df)
+        self.Create_plot(df, 'round_robin')
+
+    def Play_round_robin(self, b1, b2, b3, b4):
+        """Creates and plays a round robin tournament with the bots given
+
+        Args:
+            b1 ([type]): [description]
+            b2 ([type]): [description]
+            b3 ([type]): [description]
+            b4 ([type]): [description]
+
+        Returns:
+            bots: classes and their updated ELO scores
+        """        
         from round_robin_tournament import Tournament
-
+  
         players = [b1, b2, b3, b4]
 
         tournament = Tournament(players)
 
         matches = tournament.get_active_matches()
 
-        print('Start of Round Robin Tournament')
+        # Play a number of round robin tournaments
         while len(matches) > 0:
-            print("{} matches left".format(len(matches)))
+            # print("{} matches left".format(len(matches)))
             match = matches[0]
             bots = match.get_participants()
+            # Get the participants of the current round
             first_participant = bots[0]
-            first_participant_name = first_participant.get_competitor()
+            first_participant_bot = first_participant.get_competitor()
             second_participant = bots[1]
-            second_participant_name = second_participant.get_competitor()
-            print("{} vs {}".format(first_participant_name.name, second_participant_name.name))
+            second_participant_bot = second_participant.get_competitor()
+            # Print their names
+            print("{} vs {}".format(first_participant_bot.name, second_participant_bot.name))
             
-            first_participant_name, second_participant_name = self.Play_bot_tourney(self.tourney_rounds, first_participant_name, second_participant_name)
-
-            
-            
-            tournament.add_win(match, first_participant_name)
+            first_participant_bot, second_participant_bot = self.Play_TrueSkill_match(self.tourney_rounds, first_participant_bot, second_participant_bot)
+            # Make sure this match is marked as played
+            tournament.add_win(match, first_participant_bot)
             matches = tournament.get_active_matches()
 
-        print('Start of Round Robin Tournament')
-        while len(matches) > 0:
-            print("{} matches left".format(len(matches)))
-            match = matches[0]
-            bots = match.get_participants()
-            first_participant = bots[0]
-            first_participant_name = first_participant.get_competitor()
-            second_participant = bots[1]
-            second_participant_name = second_participant.get_competitor()
-            print("{} vs {}".format(first_participant_name.name, second_participant_name.name))
-            
-            first_participant_name, second_participant_name = self.Play_bot_tourney(self.tourney_rounds, first_participant_name, second_participant_name)
-
-            
-            
-            tournament.add_win(match, first_participant_name)
-            matches = tournament.get_active_matches()
-
-        print('Start of Round Robin Tournament')
-        while len(matches) > 0:
-            print("{} matches left".format(len(matches)))
-            match = matches[0]
-            bots = match.get_participants()
-            first_participant = bots[0]
-            first_participant_name = first_participant.get_competitor()
-            second_participant = bots[1]
-            second_participant_name = second_participant.get_competitor()
-            print("{} vs {}".format(first_participant_name.name, second_participant_name.name))
-            
-            first_participant_name, second_participant_name = self.Play_bot_tourney(self.tourney_rounds, first_participant_name, second_participant_name)
-
-            
-            
-            tournament.add_win(match, first_participant_name)
-            matches = tournament.get_active_matches()
-
-        # print(tournament.get_winners())
-
-
-        print(b1.name, b1.rating)
-        print(b2.name, b2.rating)
-        print(b3.name, b3.rating)
-        print(b4.name, b4.rating)
-
-        exit(1)
-
+        return b1, b2, b3, b4
 
 class MyBot():
-  def __init__(self, name, algorithm, search_depth=-1, use_Dijkstra=False, iterations=700):
-    self.name = name
-    self.rating = 25
-    self.search_depth = search_depth
-    self.use_Dijkstra = use_Dijkstra
-    self.iterations = iterations
-    self.algorithm = algorithm
+    """Bot Class. Has all info a bot needs. Can be given to the Bot class in bot.py
+    """    
+    def __init__(self, name, algorithm, search_depth=-1, use_dijkstra=False,
+            id_time_limit=0, use_tt=False):
+        self.name = name
+        self.rating = 25
+        self.search_depth = search_depth
+        self.use_dijkstra = use_dijkstra
+        self.algorithm = algorithm
+
+        self.id_time_limit = id_time_limit
+        self.use_tt = use_tt
 

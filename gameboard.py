@@ -22,7 +22,7 @@ class QGameboard(QtWidgets.QGraphicsView):
     def __init__(self):
         QtWidgets.QGraphicsView.__init__(self)
 
-        self.board_dimension = 4
+        self.board_dimension = 6
 
         # Board parameters. Provided by the class caller (main.py).
         self.rows = self.board_dimension
