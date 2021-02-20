@@ -19,19 +19,20 @@ class Game(QGameboard):
         self.bot = Bot()
 
         # Game Parameters
-        self.board_dimension = 6
+        self.board_dimension = 3
         # Algorithms for the bots
-        self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=True, id_time_limit = 1)
+        self.bot1 = MyBot('mcts1', 'mcts', search_depth=3, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=500)
         self.bot2 = MyBot('rnd', 'random')
 
-        self.perform_experiments = True
+        self.perform_experiments = False
 
         if self.perform_experiments:
             self.Perform_experiments()
             print('End of experiments, shutting down.')
             exit(1)
 
-        self.Play_single_bot_match(self.bot1, self.bot2, self.board)
+        for _ in range(20):
+            self.Play_single_bot_match(self.bot1, self.bot2, self.board)
 
     def Play_TrueSkill_match(self, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
@@ -93,11 +94,11 @@ class Game(QGameboard):
                 board = self.Do_bot_move(board, bot1, self.yellow, 'player1')
                 # Do move for first player
                 if self.eval.Check_winning(board, 'player1'):
-                    #print('Player 1 has won!')
+                    print('Player 1 has won!')
                     outcome = 1
                     break
             else:
-                # print('Board is full!')
+                print('Board is full!')
                 outcome = 0
                 break
 
@@ -106,14 +107,15 @@ class Game(QGameboard):
                 # Do move for first player
                 board = self.Do_bot_move(board, bot2, self.red, 'player2')
                 if self.eval.Check_winning(board, 'player2'):
-                    # print('Player 2 has won!')
+                    print('Player 2 has won!')
                     outcome = 2
                     break
             else:
-                # print('Board is full!')
+                print('Board is full!')
                 outcome = 0
                 break
 
+        print(board)
         return outcome
 
     def Do_bot_move(self, board, bot, colour, player):
@@ -249,13 +251,14 @@ class Game(QGameboard):
 class MyBot():
     """Bot Class. Has all info a bot needs. Can be given to the Bot class in bot.py
     """    
-    def __init__(self, name, algorithm, search_depth=-1, use_dijkstra=False,
+    def __init__(self, name, algorithm, search_depth=-1, use_dijkstra=False, iterations=500,
             id_time_limit=0, use_tt=False):
         self.name = name
         self.rating = 25
         self.search_depth = search_depth
         self.use_dijkstra = use_dijkstra
         self.algorithm = algorithm
+        self.iterations = iterations
 
         self.id_time_limit = id_time_limit
         self.use_tt = use_tt

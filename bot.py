@@ -883,11 +883,15 @@ class Bot:
         while 1: # Keep playing until...
             final = self.Check_winning(simulation_board)    
             if final != 0:
+                # print("In this rollout, player " + str(final) + "won...")
+                # print(simulation_board)
                 if final == player:
                     return 1 # The player won
                 else:
                     return -1 # The player lost
             elif (len(np.argwhere(node.board == 0)) == 0):
+                # print("In this rollout, it was a draw")
+                # print(simulation_board)
                 return 0 # It is a draw
 
             # Take a random non-zero field and play it
@@ -921,18 +925,37 @@ class Bot:
 
         # If the number of empty spaces is odd we are player 1
         if int((empty_spaces.size/2)) % 2 == 1:
-            maximizing_player = 1
-        else:
             maximizing_player = 2
+        else:
+            maximizing_player = 1
         
+        # print("Starting board:") ##
+        # print(board) ##
+
         copy_board = copy.deepcopy(board)
         root = self.Create_Initial_State(copy_board, maximizing_player)
 
+        # print("The maximizing player is: " + str(maximizing_player))##
+        # print("The initial state has " + str(len(root.children)) + " children") ##
+        # for i in root.children: ##
+        #     print(i.board) ##
+        
         i = 0
         while i < iterations:
             leaf = self.select(root)
+            # print("We selected leaf: ")
+            # print(leaf.parent.board)
+            # print("And expanded it to: ")
+            # print(leaf.board)
             simulation_result = self.rollout(leaf, maximizing_player)
+           # print("We did a rollout, and it was a " + str(simulation_result))
             self.backpropagate(leaf, simulation_result)
+            # print("we backpropagated, and now the nodes look like this.")
+            # print("Leaf: q="+str(leaf.q) + ", n=" + str(leaf.n))
+            # print("Leaf: q="+str(leaf.parent.q) + ", n=" + str(leaf.parent.n))
+            # print("Leaf: q="+str(leaf.parent.parent.q) + ", n=" + str(leaf.parent.parent.n))
+            # if i == 2:
+            #     exit()
             i = i + 1
         best_child = root.best_child()
         return best_child.row, best_child.col
