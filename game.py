@@ -21,8 +21,8 @@ class Game(QGameboard):
         # Game Parameters
         self.board_dimension = 3
         # Algorithms for the bots
-        self.bot1 = MyBot('mcts1', 'mcts', search_depth=3, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=500)
-        self.bot2 = MyBot('rnd', 'random')
+        self.bot1 = MyBot('mcts1', 'mcts', search_depth=3, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=1500)
+        self.bot2 = MyBot('ab', 'alphabeta', search_depth=2, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=1500)
 
         self.perform_experiments = False
 
@@ -31,8 +31,18 @@ class Game(QGameboard):
             print('End of experiments, shutting down.')
             exit(1)
 
-        for _ in range(20):
-            self.Play_single_bot_match(self.bot1, self.bot2, self.board)
+        p1 = 0
+        p2 = 0
+        dr = 0
+        for _ in range(100):
+            outcome = self.Play_single_bot_match(self.bot1, self.bot2, self.board)
+            if outcome == 1:
+                p1 = p1 + 1
+            elif outcome == 2:
+                p2 = p2 + 1
+            elif outcome == 0:
+                dr = dr + 1
+        print("Outcome --- Player1 Score: " + str(p1) + "    Player2 Score: " + str(p2) + "   Draws: " + str(dr))
 
     def Play_TrueSkill_match(self, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
@@ -115,7 +125,6 @@ class Game(QGameboard):
                 outcome = 0
                 break
 
-        print(board)
         return outcome
 
     def Do_bot_move(self, board, bot, colour, player):
