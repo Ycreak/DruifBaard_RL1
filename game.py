@@ -22,7 +22,7 @@ class Game(QGameboard):
         self.board_dimension = 3
         # Algorithms for the bots
         self.bot1 = MyBot('mcts1', 'mcts', search_depth=3, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=1500)
-        self.bot2 = MyBot('ab', 'alphabeta', search_depth=2, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=1500)
+        self.bot2 = MyBot('ab', 'random', search_depth=2, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=1500)
 
         self.perform_experiments = False
 

@@ -813,20 +813,20 @@ class Bot:
         else:
             return 0
     
-    def Create_Initial_State(self, board, player):
-        """Creates the initial tree
+    # def Create_Initial_State(self, board, player):
+    #     """Creates the initial tree
 
-        Args:
-            board (nparray): The starting board
-            player (int): The player that has to make the next move
+    #     Args:
+    #         board (nparray): The starting board
+    #         player (int): The player that has to make the next move
 
-        Returns:
-            Node: The root node of the initial tree
-        """        
-        root = Node(board, player, parent=None, row=None, col=None)
-        while not root.fully_expanded():
-            self.expand(root)
-        return root
+    #     Returns:
+    #         Node: The root node of the initial tree
+    #     """        
+    #     root = Node(board, player, parent=None, row=None, col=None)
+    #     while not root.fully_expanded():
+    #         self.expand(root)
+    #     return root
 
     def expand(self, node):
         """Expands a node, by adding one possible next game state as one of its children
@@ -883,11 +883,13 @@ class Bot:
         while 1: # Keep playing until...
             final = self.Check_winning(simulation_board)    
             if final != 0:
+                #print(simulation_board)
                 if final == player:
                     return 1 # The player won
                 else:
-                    return -1 # The player lost
+                    return 0 # The player lost
             elif (len(np.argwhere(node.board == 0)) == 0):
+                #print(simulation_board)
                 return 0 # It is a draw
 
             # Take a random non-zero field and play it
@@ -910,6 +912,7 @@ class Bot:
         """        
         node.n = node.n + 1         # Add an extra visit
         node.q = node.q + result    # Add the rollout result
+
         if node.parent == None:
             return
         else:
@@ -919,7 +922,6 @@ class Bot:
         # Get all the empty spaces
         empty_spaces = np.argwhere(board == 0)
 
-        # If the number of empty spaces is odd we are player 1
         if int((empty_spaces.size/2)) % 2 == 1:
             maximizing_player = 2
         else:
@@ -927,14 +929,33 @@ class Bot:
 
         # Create the initial tree
         copy_board = copy.deepcopy(board)
-        root = self.Create_Initial_State(copy_board, maximizing_player)
+
+        # print("The initial board")
+        # print(board)
+        root = Node(copy_board, maximizing_player, parent=None, row=None, col=None)
+        
         
         i = 0
         while i < iterations:
             leaf = self.select(root)    # Select and expand
+            # print("selected:")
+            # print(leaf.parent.board)
+            # print("expanded to:")
+            # print(leaf.board)
+            
             simulation_result = self.rollout(leaf, maximizing_player) # Simulate random
+            # print("did a rollout (see above), and the result was")
+            # print(simulation_result)
+            
+            
             self.backpropagate(leaf, simulation_result) # Backpropagate error
+            # print("Backpropagated to the top (starting at leaf):")
+            # print(str(leaf.q))
+            # print(str(leaf.parent.q))
+            
             i = i + 1
+            # if i == 2:
+            #     exit()
         best_child = root.best_child()
         return best_child.row, best_child.col
 
