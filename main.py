@@ -17,7 +17,7 @@ from game import Game
 class MyBot():
     """Bot Class. Has all info a bot needs. Can be given to the Bot class in bot.py
     """    
-    def __init__(self, name, algorithm, search_depth=-1, use_dijkstra=False,
+    def __init__(self, name, algorithm, iterations=500, search_depth=-1, use_dijkstra=False,
             id_time_limit=0, use_tt=False):
         self.name = name
         self.rating = 25
@@ -27,6 +27,8 @@ class MyBot():
 
         self.id_time_limit = id_time_limit
         self.use_tt = use_tt
+
+        self.iterations = iterations
 
 if __name__ == '__main__':
 
@@ -39,12 +41,14 @@ if __name__ == '__main__':
     bot2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
     bot3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
     bot4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
+    bot5 = MyBot('mcts', 'mcts', iterations=500)
 
     bot_list = [
         bot1,
         bot2,
         bot3,
-        bot4
+        bot4,
+        bot5
         ]
 
     game = Game(board_dimension, perform_experiments, bot_list)

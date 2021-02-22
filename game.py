@@ -31,7 +31,7 @@ class Game():
 
         self.Play_single_bot_match(self.bot_list[0], self.bot_list[1], self.board)
 
-    def Play_TrueSkill_match(self, rounds, bot1, bot2):
+    def Play_TrueSkill_match(self, board, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
 
         Args:
@@ -47,7 +47,7 @@ class Game():
         r_bot1 = Rating(bot1.rating)
         r_bot2 = Rating(bot2.rating)
 
-        outcome = self.Play_single_bot_match(bot1, bot2, self.board) #TODO: should not be self.board ideally
+        outcome = self.Play_single_bot_match(bot1, bot2, board) #TODO: should not be self.board ideally
         # print('outcome', outcome)
         if outcome == 0:
             r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True) # it is a draw
@@ -166,7 +166,7 @@ class Game():
     def Perform_experiments(self, board, bot_list):
         """This class performs the experiments as required in the Assignment
         """        
-        self.tourney_rounds = 1
+        self.tourney_rounds = 5
 
         column_names = []
         rating_dict = {}
@@ -183,7 +183,7 @@ class Game():
         for i in range(self.tourney_rounds):
             print("Round", i)
             # Play a round robin between the players
-            bot_list = self.Play_round_robin(bot_list)
+            bot_list = self.Play_round_robin(bot_list, board)
 
             # Empty dict and add new ratings           
             rating_dict = {}
@@ -196,7 +196,7 @@ class Game():
         print(df)
         self.Create_plot(df, 'round_robin')
 
-    def Play_round_robin(self, bot_list):
+    def Play_round_robin(self, bot_list, board):
         """Creates and plays a round robin tournament with the bots given
 
         Args:
@@ -229,7 +229,7 @@ class Game():
             # Print their names
             print("{} vs {}".format(first_participant_bot.name, second_participant_bot.name))
             
-            first_participant_bot, second_participant_bot = self.Play_TrueSkill_match(self.tourney_rounds, first_participant_bot, second_participant_bot)
+            first_participant_bot, second_participant_bot = self.Play_TrueSkill_match(self.tourney_rounds, board, first_participant_bot, second_participant_bot)
             # Make sure this match is marked as played
             tournament.add_win(match, first_participant_bot)
             matches = tournament.get_active_matches()
