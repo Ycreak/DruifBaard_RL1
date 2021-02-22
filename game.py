@@ -35,6 +35,7 @@ class Game():
         self.bot9 = bot('ab4D_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
 
         self.bot_list = [
+            # self.bot1,
             self.bot1,
             self.bot2,
             self.bot3,
@@ -139,7 +140,7 @@ class Game():
 
         self.gameboard.Print_gameboard(board)
 
-        print('time for bots:', round(bot1.elapsed_time,2), round(bot2.elapsed_time,2))
+        # print('time for bots:', round(bot1.elapsed_time,2), round(bot2.elapsed_time,2))
 
         return outcome
 
@@ -163,7 +164,7 @@ class Game():
         row, col = self.bot1.Do_move(board, given_bot) #FIXME: this is bad   
         end = time.time()
 
-        elapsed_time = end - start
+        elapsed_time = round(end - start, 2)
 
 
         if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
@@ -173,7 +174,7 @@ class Game():
        
         return board, elapsed_time
 
-    def Create_plot(self, df, filename):
+    def Create_line_plot(self, df, filename):
         """Simple function that creates a line plot of the given dataframe.
 
         Args:
@@ -201,12 +202,29 @@ class Game():
         plt.savefig('plots/{0}.png'.format(filename))
         plt.show()
 
+    def Create_bar_plot(self, df, filename):
+        ax = df.T.plot(title='Round Robin on {0}x{0}'.format(self.board_dimension+1), kind='bar')
+        
+        ax.set_xlabel("Bots")
+        ax.set_ylabel("Number of elapsed seconds")
+
+        plt.draw()
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        
+        ax.get_legend().remove()
+        
+        plt.savefig('plots/{0}.png'.format(filename))
+
+
+        # plt.show()
+
     def Perform_experiments(self, board, bot_list):
         """This class performs the experiments as required in the Assignment
         """        
 
         column_names = []
         rating_dict = {}
+        time_dict = {}
 
         for bot in bot_list:
             column_names.append(bot.name)
@@ -231,7 +249,20 @@ class Game():
             df = df.append(rating_dict, ignore_index=True)
 
         print(df)
-        self.Create_plot(df, 'round_robin')
+        self.Create_line_plot(df, 'round_robin')
+
+        for bot in bot_list:
+            print('Bot {0} needed {1} seconds.'.format(bot.name, bot.elapsed_time))
+            time_dict[bot.name] = bot.elapsed_time # Create a dictionary
+
+        df2 = pd.DataFrame(columns = column_names)
+
+        df2 = df2.append(time_dict, ignore_index=True)
+
+        print(df2)
+
+        self.Create_bar_plot(df2, 'elapsed_time')
+
 
     def Play_round_robin(self, bot_list, board):
         """Creates and plays a round robin tournament with the bots given
