@@ -23,18 +23,26 @@ class Game():
         # self.bot_list = bot_list
         # self.method = bot().Check_winning
 
-        self.bot1 = bot('rnd', 'random')
-        self.bot2 = bot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
-        self.bot3 = bot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
-        self.bot4 = bot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
-        self.bot5 = bot('mcts', 'mcts', iterations=500)
+        self.bot1 = bot('rnd', 'random', self.board_dimension)
+        self.bot2 = bot('ab3R', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
+        self.bot3 = bot('ab3D', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
+        self.bot4 = bot('ab4D', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
+        self.bot5 = bot('mcts', 'mcts', self.board_dimension, iterations=500)
+        self.bot6 = bot('ab4D_TT', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0)
+        self.bot7 = bot('ab4D_TT_ID0.5', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0.5)
+        self.bot8 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
+        self.bot9 = bot('ab4D_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
 
         self.bot_list = [
             self.bot1,
             self.bot2,
             self.bot3,
             self.bot4,
-            self.bot5
+            self.bot5,
+            self.bot6,
+            self.bot7,
+            self.bot8,
+            self.bot9
             ]
 
         # Create a gameboard
