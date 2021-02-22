@@ -32,8 +32,10 @@ class MyBot():
 
 if __name__ == '__main__':
 
-    board_dimension = 3
+    board_dimension = 5
     perform_experiments = True
+    tourney_rounds = 2
+
 
     # Algorithms for the bots
     # self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit = 1)
@@ -51,5 +53,5 @@ if __name__ == '__main__':
         bot5
         ]
 
-    game = Game(board_dimension, perform_experiments, bot_list)
+    game = Game(board_dimension, perform_experiments, tourney_rounds, bot_list)
 

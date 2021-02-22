@@ -10,11 +10,12 @@ from gameboard import Gameboard
 
 class Game():
 
-    def __init__(self, board_dimension, perform_experiments, bot_list):
+    def __init__(self, board_dimension, perform_experiments, tourney_rounds, bot_list):
         
         self.board_dimension = board_dimension
         self.perform_experiments = perform_experiments
-        
+        self.tourney_rounds = tourney_rounds
+
         self.bot_list = bot_list
         
         # Create a gameboard
@@ -85,7 +86,7 @@ class Game():
                 board = self.Handle_bot_move(board, bot1, 'player1')
                 # Do move for first player
                 if self.bot.Check_winning(board) == 1:
-                    print('Player 1 has won!')
+                    print(bot.name1, 'has won!')
                     outcome = 1
                     break
             else:
@@ -98,7 +99,7 @@ class Game():
                 # Do move for first player
                 board = self.Handle_bot_move(board, bot2, 'player2')
                 if self.bot.Check_winning(board) == 2:
-                    print('Player 2 has won!')
+                    print(bot2.name, 'has won!')
                     outcome = 2
                     break
             else:
@@ -144,7 +145,7 @@ class Game():
         """
         from matplotlib.ticker import MaxNLocator
         # Y Cap.
-        trueskill_max = 40
+        trueskill_max = 50
 
         # Take the names of the columns and plot these
         ax = df.plot.line(title='Round Robin on {0}x{0}'.format(self.board_dimension+1))
@@ -166,7 +167,6 @@ class Game():
     def Perform_experiments(self, board, bot_list):
         """This class performs the experiments as required in the Assignment
         """        
-        self.tourney_rounds = 5
 
         column_names = []
         rating_dict = {}
@@ -227,6 +227,7 @@ class Game():
             second_participant = bots[1]
             second_participant_bot = second_participant.get_competitor()
             # Print their names
+            print('########################################')
             print("{} vs {}".format(first_participant_bot.name, second_participant_bot.name))
             
             first_participant_bot, second_participant_bot = self.Play_TrueSkill_match(self.tourney_rounds, board, first_participant_bot, second_participant_bot)
