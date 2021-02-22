@@ -33,7 +33,7 @@ class MyBot():
 if __name__ == '__main__':
 
     board_dimension = 3
-    perform_experiments = True
+    perform_experiments = False
 
     # Algorithms for the bots
     # self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit = 1)
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     bot2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
     bot3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
     bot4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
-    bot5 = MyBot('mcts', 'mcts', iterations=500)
+    bot5 = MyBot('mcts', 'mcts', iterations=200000)
 
     bot_list = [
         bot1,

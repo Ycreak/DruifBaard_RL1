@@ -808,25 +808,10 @@ class Bot:
 
         if player_won != 0:
             return player_won
-        elif len(np.argwhere(node.board == 0)) == 0:
+        elif np.count_nonzero(node.board==0) == 0:
             return 3
         else:
             return 0
-    
-    # def Create_Initial_State(self, board, player):
-    #     """Creates the initial tree
-
-    #     Args:
-    #         board (nparray): The starting board
-    #         player (int): The player that has to make the next move
-
-    #     Returns:
-    #         Node: The root node of the initial tree
-    #     """        
-    #     root = Node(board, player, parent=None, row=None, col=None)
-    #     while not root.fully_expanded():
-    #         self.expand(root)
-    #     return root
 
     def expand(self, node):
         """Expands a node, by adding one possible next game state as one of its children
@@ -956,6 +941,7 @@ class Bot:
             i = i + 1
             # if i == 2:
             #     exit()
+            
         best_child = root.best_child()
         return best_child.row, best_child.col
 

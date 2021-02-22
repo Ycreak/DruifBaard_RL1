@@ -29,7 +29,9 @@ class Game():
             print('End of experiments, shutting down.')
             exit(1)
 
-        self.Play_single_bot_match(self.bot_list[0], self.bot_list[1], self.board)
+        for _ in range(20):
+            res = self.Play_single_bot_match(self.bot_list[2], self.bot_list[4], self.board)
+            print("Player " + str(res) + " won")
 
     def Play_TrueSkill_match(self, board, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
