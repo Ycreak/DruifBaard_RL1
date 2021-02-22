@@ -42,7 +42,7 @@ class Node:
 
 class Bot:
     def __init__(self, name, algorithm, iterations=500, search_depth=-1, use_dijkstra=False,
-            id_time_limit=0, use_tt=False):
+            id_time_limit=0, use_tt=False, elapsed_time=0):
         self.name = name
         self.rating = 25
         self.search_depth = search_depth
@@ -53,6 +53,8 @@ class Bot:
         self.use_tt = use_tt
 
         self.iterations = iterations
+
+        self.elapsed_time = elapsed_time
 
     def Do_move(self, board, bot): 
 
