@@ -42,7 +42,7 @@ class Node:
 
 class Bot:
     def __init__(self, name, algorithm, board_dimension, iterations=500, search_depth=-1, use_dijkstra=False,
-            id_time_limit=0, use_tt=False):
+            id_time_limit=0, use_tt=False, elapsed_time=0):
         self.name = name
         self.rating = 25
         self.search_depth = search_depth
@@ -59,6 +59,9 @@ class Bot:
             bd = board_dimension + 1
             self.hash_table = [[[random.randint(1, 2**(bd * bd) - 1) for x in range(3)] for y in range(bd)] for z in range(bd)] 
             self.transposition_table = {}
+        self.elapsed_time = elapsed_time
+
+    def Do_move(self, board, bot): 
 
         self.iterations = iterations
 

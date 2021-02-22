@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import time
 
 from trueskill import Rating, quality_1vs1, rate_1vs1
 
@@ -108,9 +109,10 @@ class Game():
         while(True):
             # If the board is not yet full, we can do a move
             if not self.gameboard.Check_board_full(board):
-                board = self.Handle_bot_move(board, bot1, 'player1')
+                board, elapsed_time = self.Handle_bot_move(board, bot1, 'player1')
+                bot1.elapsed_time += elapsed_time
                 # Do move for first player               
-                if self.bot1.Check_winning(board) == 1:
+                if self.bot1.Check_winning(board) == 1: #FIXME: this is bad
                     print(bot1.name, 'has won!')
                     outcome = 1
                     break
@@ -119,11 +121,14 @@ class Game():
                 outcome = 0
                 break
 
+
             # If player 1 did not win, check if the board is full
             if not self.gameboard.Check_board_full(board):
                 # Do move for first player
-                board = self.Handle_bot_move(board, bot2, 'player2')
-                if self.bot1.Check_winning(board) == 2: #TODO: big brain time.
+                board, elapsed_time = self.Handle_bot_move(board, bot2, 'player2')
+                bot2.elapsed_time += elapsed_time
+
+                if self.bot1.Check_winning(board) == 2: #FIXME: this is bad
                     print(bot2.name, 'has won!')
                     outcome = 2
                     break
@@ -133,6 +138,8 @@ class Game():
                 break
 
         self.gameboard.Print_gameboard(board)
+
+        print('time for bots:', round(bot1.elapsed_time,2), round(bot2.elapsed_time,2))
 
         return outcome
 
@@ -152,14 +159,19 @@ class Game():
         TODO: Revise this class.
         """           
 
-        row, col = self.bot1.Do_move(board, given_bot)   
-        
+        start = time.time()
+        row, col = self.bot1.Do_move(board, given_bot) #FIXME: this is bad   
+        end = time.time()
+
+        elapsed_time = end - start
+
+
         if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
             raise Exception('Row or col exceeds board boundaries: \n\trow: {0}\n\tcol: {1}\n\tdimension: {2}'.format(row, col, self.board_dimension)) 
 
         board = self.gameboard.Update_numpy_board(board, row, col, player)
        
-        return board
+        return board, elapsed_time
 
     def Create_plot(self, df, filename):
         """Simple function that creates a line plot of the given dataframe.
