@@ -6,7 +6,6 @@ import random
 from trueskill import Rating, quality_1vs1, rate_1vs1
 
 from bot import Bot
-from evaluate import Evaluate
 from gameboard import Gameboard
 
 class Game():
@@ -26,7 +25,6 @@ class Game():
         # Save it to a class variable    
         self.board = self.gameboard.board      
         # Initialise the other classes
-        self.eval = Evaluate(self.board)
         self.bot = Bot()
         
         if self.perform_experiments:
@@ -48,9 +46,6 @@ class Game():
             dataframe: of TrueSkill scores            
         """        
         # Stats
-        draws = 0
-        bot1_wins = 0
-        bot2_wins = 0
        
         r_bot1 = Rating(bot1.rating)
         r_bot2 = Rating(bot2.rating)
@@ -58,15 +53,12 @@ class Game():
         outcome = self.Play_single_bot_match(bot1, bot2, self.board) #TODO: should not be self.board ideally
         # print('outcome', outcome)
         if outcome == 0:
-            draws += 1
             r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2, True) # it is a draw
 
         elif outcome == 1:
-            bot1_wins += 1
             r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2)
 
         elif outcome == 2:
-            bot2_wins += 1
             r_bot2, r_bot1 = rate_1vs1(r_bot2, r_bot1) #TODO: is this good?
 
         bot1.rating = r_bot1
@@ -93,7 +85,7 @@ class Game():
         while(True):
             # If the board is not yet full, we can do a move
             if not self.gameboard.Check_board_full(board):
-                board = self.Do_bot_move(board, bot1, 'player1')
+                board = self.Handle_bot_move(board, bot1, 'player1')
                 # Do move for first player
                 if self.bot.Check_winning(board) == 1:
                     print('Player 1 has won!')
@@ -107,7 +99,7 @@ class Game():
             # If player 1 did not win, check if the board is full
             if not self.gameboard.Check_board_full(board):
                 # Do move for first player
-                board = self.Do_bot_move(board, bot2, 'player2')
+                board = self.Handle_bot_move(board, bot2, 'player2')
                 if self.bot.Check_winning(board) == 2:
                     print('Player 2 has won!')
                     outcome = 2
@@ -121,7 +113,7 @@ class Game():
 
         return outcome
 
-    def Do_bot_move(self, board, bot, player):
+    def Handle_bot_move(self, board, bot, player):
         """Handles everything regarding the moving of a bot: calls bot class, adds tile information
         and paints the tile on the screen. Also updates the board and returns it with the new move.
 
