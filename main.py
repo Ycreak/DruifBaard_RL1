@@ -16,8 +16,8 @@ from game import Game
 
 if __name__ == '__main__':
 
-    board_dimension = 4 
-    perform_experiments = True
+    board_dimension = 3
+    perform_experiments = False
     tourney_rounds = 10
 
     game = Game(board_dimension, perform_experiments, tourney_rounds)

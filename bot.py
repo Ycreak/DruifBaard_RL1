@@ -24,7 +24,7 @@ class Node:
         """        
         return len(self.children) >= len(np.argwhere(self.board == 0))
     
-    def best_child(self, c_param=1.0):
+    def best_child(self, c_param=np.sqrt(2)):
         """Calculates UCT and determines the best child node
 
         Args:
@@ -946,7 +946,7 @@ class Bot:
             i = i + 1
             # if i == 2:
             #     exit()
-            
+
         best_child = root.best_child()
         return best_child.row, best_child.col
 
