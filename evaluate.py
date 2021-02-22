@@ -3,55 +3,55 @@ from itertools import chain
 
 class Evaluate:
 
-    def __init__(self, board, offset):
+    def __init__(self, board):
 
-        self.adjacent_offset = offset
+        # self.adjacent_offset = offset
 
         self.num_rows, self.num_cols = board.shape
 
-        self.found_winning = False
+        # self.found_winning = False
 
-        self.debugging = False
+        # self.debugging = False
 
-    def Make_coordinate_list(self, value, array):        
-        """Creates a list of all coordinates belonging to the given player
+    # def Make_coordinate_list(self, value, array):        
+    #     """Creates a list of all coordinates belonging to the given player
 
-        Args:
-            value (int): player
-            array (np array): [description]
+    #     Args:
+    #         value (int): player
+    #         array (np array): [description]
 
-        Returns:
-            list: of coordinates belonging to the given player
-        """        
-        return np.argwhere(array == value)
+    #     Returns:
+    #         list: of coordinates belonging to the given player
+    #     """        
+    #     return np.argwhere(array == value)
 
-    def Find_adjacent_candidate_tiles(self, board, row, col, value):
-        """Finds all adjacent friendly tiles of the tile given
+    # def Find_adjacent_candidate_tiles(self, board, row, col, value):
+    #     """Finds all adjacent friendly tiles of the tile given
 
-        Args:
-            board (np array): [description]
-            row (int): [description]
-            col (int): [description]
-            value (int): player
+    #     Args:
+    #         board (np array): [description]
+    #         row (int): [description]
+    #         col (int): [description]
+    #         value (int): player
 
-        Returns:
-            list: of all adjacent candidate tiles
-        """        
-        tile_list = []
+    #     Returns:
+    #         list: of all adjacent candidate tiles
+    #     """        
+    #     tile_list = []
         
-        # Find all the neighbours 
-        for offset in self.adjacent_offset:
-            row2 = row + offset[1]
-            col2 = col + offset[0]
+    #     # Find all the neighbours 
+    #     for offset in self.adjacent_offset:
+    #         row2 = row + offset[1]
+    #         col2 = col + offset[0]
             
-            # Within the boundaries of the given board
-            if row2 >= 0 and row2 < self.num_rows and col2 >= 0 and col2 < self.num_cols:
+    #         # Within the boundaries of the given board
+    #         if row2 >= 0 and row2 < self.num_rows and col2 >= 0 and col2 < self.num_cols:
                 
-                # Check if the tile belongs to the given player
-                if board[row2, col2] == value:
-                    tile_list.append([row2,col2])      
+    #             # Check if the tile belongs to the given player
+    #             if board[row2, col2] == value:
+    #                 tile_list.append([row2,col2])      
 
-        return tile_list
+    #     return tile_list
 
     def Make_candidate_set(self, indeces, board, player_token):
         """Makes candidate set to start searching. For player1, we search from the top, for player2, 
@@ -73,15 +73,13 @@ class Evaluate:
             if player_token == 1:
                 if row == 0:
                     # Add these nodes to our node list
-                    if self.debugging: 
-                        print('candidate:', tile, board[row,col])
+
                     node_list.append([row,col])
 
             elif player_token == 2:
                 if col == 0:
                     # Add these nodes to our node list
-                    if self.debugging: 
-                        print('candidate:', tile, board[row,col])
+
                     node_list.append([row,col])                
 
         return node_list

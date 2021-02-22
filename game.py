@@ -7,42 +7,34 @@ from trueskill import Rating, quality_1vs1, rate_1vs1
 
 from bot import Bot
 from evaluate import Evaluate
+from gameboard import Gameboard
 
-from gameboard import QGameboard
+class Game():
 
-class Game(QGameboard):
-    def __init__(self):
-        super().__init__() # Inheritance (professionals have standards)
+    def __init__(self, board_dimension, perform_experiments, *bots):
+        
+        self.board_dimension = board_dimension
+        self.perform_experiments = perform_experiments
+        
+        self.bot_list = []
 
+        for bot in bots:
+            self.bot_list.append(bot)
+        
+        # Create a gameboard
+        self.gameboard = Gameboard(board_dimension)
+        # Save it to a class variable    
+        self.board = self.gameboard.board      
         # Initialise the other classes
-        self.eval = Evaluate(self.board, self.adjacent_offset)
+        self.eval = Evaluate(self.board)
         self.bot = Bot()
-
-        # Game Parameters
-        self.board_dimension = 3
-        # Algorithms for the bots
-        self.bot1 = MyBot('mcts1', 'mcts', search_depth=3, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=1500)
-        self.bot2 = MyBot('ab', 'alphabeta', search_depth=2, use_dijkstra=True, use_tt=True, id_time_limit = 1, iterations=1500)
-
-        self.perform_experiments = False
-
+        
         if self.perform_experiments:
-            self.Perform_experiments()
+            self.Perform_experiments(self.board, self.bot_list)
             print('End of experiments, shutting down.')
             exit(1)
 
-        p1 = 0
-        p2 = 0
-        dr = 0
-        for _ in range(100):
-            outcome = self.Play_single_bot_match(self.bot1, self.bot2, self.board)
-            if outcome == 1:
-                p1 = p1 + 1
-            elif outcome == 2:
-                p2 = p2 + 1
-            elif outcome == 0:
-                dr = dr + 1
-        print("Outcome --- Player1 Score: " + str(p1) + "    Player2 Score: " + str(p2) + "   Draws: " + str(dr))
+        self.Play_single_bot_match(self.bot_list[0], self.bot_list[1], self.board)
 
     def Play_TrueSkill_match(self, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
@@ -101,7 +93,7 @@ class Game(QGameboard):
         while(True):
             # If the board is not yet full, we can do a move
             if not self.eval.Check_board_full(board):
-                board = self.Do_bot_move(board, bot1, self.yellow, 'player1')
+                board = self.Do_bot_move(board, bot1, 'player1')
                 # Do move for first player
                 if self.eval.Check_winning(board, 'player1'):
                     print('Player 1 has won!')
@@ -115,7 +107,7 @@ class Game(QGameboard):
             # If player 1 did not win, check if the board is full
             if not self.eval.Check_board_full(board):
                 # Do move for first player
-                board = self.Do_bot_move(board, bot2, self.red, 'player2')
+                board = self.Do_bot_move(board, bot2, 'player2')
                 if self.eval.Check_winning(board, 'player2'):
                     print('Player 2 has won!')
                     outcome = 2
@@ -125,9 +117,11 @@ class Game(QGameboard):
                 outcome = 0
                 break
 
+        self.gameboard.Print_gameboard(board)
+
         return outcome
 
-    def Do_bot_move(self, board, bot, colour, player):
+    def Do_bot_move(self, board, bot, player):
         """Handles everything regarding the moving of a bot: calls bot class, adds tile information
         and paints the tile on the screen. Also updates the board and returns it with the new move.
 
@@ -148,13 +142,8 @@ class Game(QGameboard):
         if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
             raise Exception('Row or col exceeds board boundaries: \n\trow: {0}\n\tcol: {1}\n\tdimension: {2}'.format(row, col, self.board_dimension)) 
 
-        location = f"{row}-{col}"
-        selected_tile = self.map_tile_by_coordinates[location]
-        # Paint what is done
-        self.Paint_tile(selected_tile, colour)
-        # Update the numpy matrix
-        board = self.Update_numpy_board(board, row, col, player)
-        # TODO: less convoluted
+        board = self.gameboard.Update_numpy_board(board, row, col, player)
+       
         return board
 
     def Create_plot(self, df, filename):
@@ -185,16 +174,10 @@ class Game(QGameboard):
         plt.savefig('plots/{0}.png'.format(filename))
         plt.show()
 
-    def Perform_experiments(self):
+    def Perform_experiments(self, board, bot_list):
         """This class performs the experiments as required in the Assignment
         """        
         self.tourney_rounds = 1
-
-        # Create the players        
-        b1 = MyBot('rnd', 'random')
-        b2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
-        b3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
-        b4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
 
         # Create Pandas Dataframe
         column_names = [b1.name, b2.name, b3.name, b4.name]
@@ -257,18 +240,5 @@ class Game(QGameboard):
 
         return b1, b2, b3, b4
 
-class MyBot():
-    """Bot Class. Has all info a bot needs. Can be given to the Bot class in bot.py
-    """    
-    def __init__(self, name, algorithm, search_depth=-1, use_dijkstra=False, iterations=500,
-            id_time_limit=0, use_tt=False):
-        self.name = name
-        self.rating = 25
-        self.search_depth = search_depth
-        self.use_dijkstra = use_dijkstra
-        self.algorithm = algorithm
-        self.iterations = iterations
 
-        self.id_time_limit = id_time_limit
-        self.use_tt = use_tt
 
