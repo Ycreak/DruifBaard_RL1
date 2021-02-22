@@ -70,3 +70,17 @@ class Gameboard():
 
         return board
 
+    def Check_board_full(self, board):
+        """Simple function to check whether the board is full
+
+        Args:
+            board (np array): [description]
+
+        Returns:
+            bool: whether board is filled with all but zeroes
+        """        
+        if np.all(board):
+            # There are no zeroes on the board
+            return True
+        else:
+            return False

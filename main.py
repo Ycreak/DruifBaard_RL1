@@ -30,7 +30,7 @@ class MyBot():
 
 if __name__ == '__main__':
 
-    board_dimension = 5
+    board_dimension = 3
     perform_experiments = False
 
     # Algorithms for the bots

@@ -92,10 +92,10 @@ class Game():
 
         while(True):
             # If the board is not yet full, we can do a move
-            if not self.eval.Check_board_full(board):
+            if not self.gameboard.Check_board_full(board):
                 board = self.Do_bot_move(board, bot1, 'player1')
                 # Do move for first player
-                if self.eval.Check_winning(board, 'player1'):
+                if self.bot.Check_winning(board) == 1:
                     print('Player 1 has won!')
                     outcome = 1
                     break
@@ -105,10 +105,10 @@ class Game():
                 break
 
             # If player 1 did not win, check if the board is full
-            if not self.eval.Check_board_full(board):
+            if not self.gameboard.Check_board_full(board):
                 # Do move for first player
                 board = self.Do_bot_move(board, bot2, 'player2')
-                if self.eval.Check_winning(board, 'player2'):
+                if self.bot.Check_winning(board) == 2:
                     print('Player 2 has won!')
                     outcome = 2
                     break
