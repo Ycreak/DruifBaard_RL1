@@ -41,18 +41,35 @@ class Node:
 
 
 class Bot:
-    # def __init__(self):
-        # print('bliep bloop')
+    def __init__(self, name, algorithm, board_dimension, iterations=500, search_depth=-1, use_dijkstra=False,
+            id_time_limit=0, use_tt=False, elapsed_time=0):
+        self.name = name
+        self.rating = 25
+        self.search_depth = search_depth
+        self.use_dijkstra = use_dijkstra
+        self.algorithm = algorithm
+
+        self.id_time_limit = id_time_limit
+        self.use_tt = use_tt
+
+        self.board_dimension = board_dimension
+        # print(self.board_dimension)
+
+        if(use_tt):
+            bd = board_dimension + 1
+            self.hash_table = [[[random.randint(1, 2**(bd * bd) - 1) for x in range(3)] for y in range(bd)] for z in range(bd)] 
+            self.transposition_table = {}
+        self.elapsed_time = elapsed_time
 
     def Do_move(self, board, bot): 
 
-        self.board_dimension = board.shape[0] - 1 #TODO: should be in init
-        # print(self.board_dimension)
+        self.iterations = iterations
 
+    def Do_move(self, board, bot): 
         if bot.algorithm == 'random':
             return self.Random_bot(board)
         elif bot.algorithm == 'alphabeta':
-            return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_dijkstra, bot.use_tt, bot.id_time_limit)
+            return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_dijkstra, bot.use_tt, bot.id_time_limit, bot)
         elif bot.algorithm == 'mcts':
             return self.Mcts_bot(board, bot.iterations)
         else:
@@ -75,7 +92,7 @@ class Bot:
 
         return row, col
 
-    def Alpha_Beta_bot(self, board, search_depth, use_dijkstra, use_tt, id_time_limit):
+    def Alpha_Beta_bot(self, board, search_depth, use_dijkstra, use_tt, id_time_limit, bot):
         """Bot that returns an empty space on the board chosen by a Minimax algorithm using alpha-beta pruning
 
         Args:
@@ -120,12 +137,12 @@ class Bot:
             value = -130
             space = [-130, -130]
 
-            self.Initialise_tt()
+            #self.Initialise_tt()
 
             #Keep searching till time time is up
             while self.StillGotTime(end_time):
                 if use_tt:
-                    value, space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1)
+                    value, space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
                 else:
                     value, space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra)
                 
@@ -134,8 +151,7 @@ class Bot:
             
         else:
             if use_tt:
-                self.Initialise_tt()
-                value, space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1)
+                value, space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
             else:
                 value, space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra)
             
@@ -235,7 +251,7 @@ class Bot:
 
             return min_value, min_space
 
-    def Minimax_tt(self, board, depth, alpha, beta, max_player, use_dijkstra, hashed_board):
+    def Minimax_tt(self, board, depth, alpha, beta, max_player, use_dijkstra, hashed_board, bot):
         """Minimax algorithm (transposition tables version). 
             The algorithm returns the value of the current playstate and the best space in this state.
 
@@ -258,10 +274,10 @@ class Bot:
 
         #If the hashed_board has not been made, make the board
         if hashed_board == -1:
-            hashed_board = self.Hash_board(board)
+            hashed_board = self.Hash_board(board, bot)
         
         #If we've seen this game state before, load the result from the transposition table 
-        succes, value, space = self.Load_result(hashed_board, depth)
+        succes, value, space = self.Load_result(hashed_board, depth, bot)
         if succes:
             return value, space
 
@@ -269,7 +285,7 @@ class Bot:
         if np.all(board):
             value = 0
             space = [-700, -700]
-            self.Store_result(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space, bot)
             return value, space
 
         # If player 1 has won the game
@@ -277,21 +293,21 @@ class Bot:
         if winner == 1:
             value = 10
             space = [-800, -800]
-            self.Store_result(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space, bot)
             return value, space
 
         # If player 2 has won the game
         if winner == 2:
             value = -10
             space = [-900, -900]
-            self.Store_result(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space, bot)
             return value, space
 
         # If the algorithm has reached the search depth
         if depth == 0:
             value = self.Evaluate_game_state(board, use_dijkstra)
             space = [-100, -100]
-            self.Store_result(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space, bot)
             return value, space
         
         # If it is the turn of the maximizing player
@@ -307,9 +323,9 @@ class Bot:
                 copy_board[row, col] = 1
                 
                 hashed_board_copy = hashed_board
-                hashed_board_copy ^= self.hash_table[row][col][1]
+                hashed_board_copy ^= bot.hash_table[row][col][1]
 
-                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, False, use_dijkstra, hashed_board_copy)
+                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, False, use_dijkstra, hashed_board_copy, bot)
                 
                 if value > max_value:
                     max_value = value
@@ -320,7 +336,7 @@ class Bot:
                 if beta <= alpha:
                     break
             
-            self.Store_result(hashed_board, depth, max_value, max_space)
+            self.Store_result(hashed_board, depth, max_value, max_space, bot)
             return max_value, max_space
         
         # If it is the turn of the minimizing player
@@ -337,9 +353,9 @@ class Bot:
                 copy_board[row, col] = 2
 
                 hashed_board_copy = hashed_board
-                hashed_board_copy ^= self.hash_table[row][col][2]
+                hashed_board_copy ^= bot.hash_table[row][col][2]
 
-                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, True, use_dijkstra, hashed_board_copy)
+                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, True, use_dijkstra, hashed_board_copy, bot)
 
                 if value < min_value:
                     min_value = value
@@ -350,7 +366,7 @@ class Bot:
                 if beta <= alpha:
                     break
             
-            self.Store_result(hashed_board, depth, min_value, min_space)
+            self.Store_result(hashed_board, depth, min_value, min_space, bot)
             return min_value, min_space
 
     def Evaluate_game_state(self, board, use_dijkstra):
@@ -590,18 +606,7 @@ class Bot:
         
         return adjacent_spaces
 
-    def Initialise_tt(self):
-        """Function to initialise the transposition table
-        TODO: This function should be run on init of the bot, not every time a move is requested
-        """
-
-        board_dimension = self.board_dimension + 1
-
-        self.transposition_table = {}
-        self.hash_table = [[[random.randint(1, 2**(board_dimension * board_dimension) - 1) for x in range(3)] for y in range(board_dimension)] for z in range(board_dimension)] 
-        return
-
-    def Load_result(self, hashed_board, depth):
+    def Load_result(self, hashed_board, depth, bot):
         """Check if a game state has been seen before and return it if so
 
         Args:
@@ -613,13 +618,13 @@ class Bot:
                 The first int is the value found, the last two ints are the space found
         """        
 
-        if (hashed_board, depth) in self.transposition_table:
-            value, row, col = self.transposition_table[hashed_board, depth]
+        if (hashed_board, depth) in bot.transposition_table:
+            value, row, col = bot.transposition_table[hashed_board, depth]
             return True, value, [row, col]
 
         return False, -690, [-690, -690]
 
-    def Store_result(self, hashed_board, depth, value, space):
+    def Store_result(self, hashed_board, depth, value, space, bot):
         """Store a calculated value and best space for a seen gamestate
 
         Args:
@@ -630,10 +635,10 @@ class Bot:
         """        
       
         row, col = space
-        self.transposition_table[(hashed_board, depth)] = [value, row, col]
+        bot.transposition_table[(hashed_board, depth)] = [value, row, col]
         return
 
-    def Hash_board(self, board):
+    def Hash_board(self, board, bot):
         """Hash a gameboard to a int
 
         Args:
@@ -653,7 +658,7 @@ class Bot:
                     space = board[row][col]
 
                     #XOR the new space over the hashed_board
-                    hashed_board ^= self.hash_table[row][col][space]
+                    hashed_board ^= bot.hash_table[row][col][space]
 
         return hashed_board
 

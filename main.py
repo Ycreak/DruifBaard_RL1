@@ -14,42 +14,15 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 # from gameboard import QGameboard
 from game import Game
 
-class MyBot():
-    """Bot Class. Has all info a bot needs. Can be given to the Bot class in bot.py
-    """    
-    def __init__(self, name, algorithm, iterations=500, search_depth=-1, use_dijkstra=False,
-            id_time_limit=0, use_tt=False):
-        self.name = name
-        self.rating = 25
-        self.search_depth = search_depth
-        self.use_dijkstra = use_dijkstra
-        self.algorithm = algorithm
-
-        self.id_time_limit = id_time_limit
-        self.use_tt = use_tt
-
-        self.iterations = iterations
-
 if __name__ == '__main__':
 
-    board_dimension = 3
-    perform_experiments = False
+    board_dimension = 4 
+    perform_experiments = True
+    tourney_rounds = 10
 
-    # Algorithms for the bots
-    # self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit = 1)
-    bot1 = MyBot('rnd', 'random')
-    bot2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
-    bot3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
-    bot4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
-    bot5 = MyBot('mcts', 'mcts', iterations=200000)
+    game = Game(board_dimension, perform_experiments, tourney_rounds)
 
-    bot_list = [
-        bot1,
-        bot2,
-        bot3,
-        bot4,
-        bot5
-        ]
+    test_dimensions = [2, 4, 6, 8, 10] 
 
-    game = Game(board_dimension, perform_experiments, bot_list)
-
+    # for dimension in test_dimensions:
+    #     game = Game(dimension, perform_experiments, tourney_rounds)

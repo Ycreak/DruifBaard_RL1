@@ -2,27 +2,55 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import time
 
 from trueskill import Rating, quality_1vs1, rate_1vs1
 
-from bot import Bot
+from bot import Bot as bot
+# from bot import Check_winning
 from gameboard import Gameboard
 
 class Game():
 
-    def __init__(self, board_dimension, perform_experiments, bot_list):
+    def __init__(self, board_dimension, perform_experiments, tourney_rounds):
+        
+        # Initialise the other classes
+        # self.bot = bot
         
         self.board_dimension = board_dimension
         self.perform_experiments = perform_experiments
-        
-        self.bot_list = bot_list
-        
+        self.tourney_rounds = tourney_rounds
+
+        # self.bot_list = bot_list
+        # self.method = bot().Check_winning
+
+        self.bot1 = bot('rnd', 'random', self.board_dimension)
+        self.bot2 = bot('ab3R', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
+        self.bot3 = bot('ab3D', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
+        self.bot4 = bot('ab4D', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
+        self.bot5 = bot('mcts', 'mcts', self.board_dimension, iterations=500)
+        self.bot6 = bot('ab4D_TT', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0)
+        self.bot7 = bot('ab4D_TT_ID0.5', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0.5)
+        self.bot8 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
+        self.bot9 = bot('ab4D_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
+
+        self.bot_list = [
+            # self.bot1,
+            self.bot1,
+            self.bot2,
+            self.bot3,
+            self.bot4,
+            self.bot5,
+            self.bot6,
+            self.bot7,
+            self.bot8,
+            self.bot9
+            ]
+
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
         # Save it to a class variable    
         self.board = self.gameboard.board      
-        # Initialise the other classes
-        self.bot = Bot()
         
         if self.perform_experiments:
             self.Perform_experiments(self.board, self.bot_list)
@@ -84,10 +112,11 @@ class Game():
         while(True):
             # If the board is not yet full, we can do a move
             if not self.gameboard.Check_board_full(board):
-                board = self.Handle_bot_move(board, bot1, 'player1')
-                # Do move for first player
-                if self.bot.Check_winning(board) == 1:
-                    print('Player 1 has won!')
+                board, elapsed_time = self.Handle_bot_move(board, bot1, 'player1')
+                bot1.elapsed_time += elapsed_time
+                # Do move for first player               
+                if self.bot1.Check_winning(board) == 1: #FIXME: this is bad
+                    print(bot1.name, 'has won!')
                     outcome = 1
                     break
             else:
@@ -95,12 +124,15 @@ class Game():
                 outcome = 0
                 break
 
+
             # If player 1 did not win, check if the board is full
             if not self.gameboard.Check_board_full(board):
                 # Do move for first player
-                board = self.Handle_bot_move(board, bot2, 'player2')
-                if self.bot.Check_winning(board) == 2:
-                    print('Player 2 has won!')
+                board, elapsed_time = self.Handle_bot_move(board, bot2, 'player2')
+                bot2.elapsed_time += elapsed_time
+
+                if self.bot1.Check_winning(board) == 2: #FIXME: this is bad
+                    print(bot2.name, 'has won!')
                     outcome = 2
                     break
             else:
@@ -110,9 +142,11 @@ class Game():
 
         self.gameboard.Print_gameboard(board)
 
+        # print('time for bots:', round(bot1.elapsed_time,2), round(bot2.elapsed_time,2))
+
         return outcome
 
-    def Handle_bot_move(self, board, bot, player):
+    def Handle_bot_move(self, board, given_bot, player):
         """Handles everything regarding the moving of a bot: calls bot class, adds tile information
         and paints the tile on the screen. Also updates the board and returns it with the new move.
 
@@ -128,16 +162,21 @@ class Game():
         TODO: Revise this class.
         """           
 
-        row, col = self.bot.Do_move(board, bot)   
-        
+        start = time.time()
+        row, col = self.bot1.Do_move(board, given_bot) #FIXME: this is bad   
+        end = time.time()
+
+        elapsed_time = round(end - start, 2)
+
+
         if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
             raise Exception('Row or col exceeds board boundaries: \n\trow: {0}\n\tcol: {1}\n\tdimension: {2}'.format(row, col, self.board_dimension)) 
 
         board = self.gameboard.Update_numpy_board(board, row, col, player)
        
-        return board
+        return board, elapsed_time
 
-    def Create_plot(self, df, filename):
+    def Create_line_plot(self, df, filename):
         """Simple function that creates a line plot of the given dataframe.
 
         Args:
@@ -146,7 +185,7 @@ class Game():
         """
         from matplotlib.ticker import MaxNLocator
         # Y Cap.
-        trueskill_max = 40
+        trueskill_max = 50
 
         # Take the names of the columns and plot these
         ax = df.plot.line(title='Round Robin on {0}x{0}'.format(self.board_dimension+1))
@@ -165,13 +204,29 @@ class Game():
         plt.savefig('plots/{0}.png'.format(filename))
         plt.show()
 
+    def Create_bar_plot(self, df, filename):
+        ax = df.T.plot(title='Round Robin on {0}x{0}'.format(self.board_dimension+1), kind='bar')
+        
+        ax.set_xlabel("Bots")
+        ax.set_ylabel("Number of elapsed seconds")
+
+        plt.draw()
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        
+        ax.get_legend().remove()
+        
+        plt.savefig('plots/{0}.png'.format(filename))
+
+
+        # plt.show()
+
     def Perform_experiments(self, board, bot_list):
         """This class performs the experiments as required in the Assignment
         """        
-        self.tourney_rounds = 5
 
         column_names = []
         rating_dict = {}
+        time_dict = {}
 
         for bot in bot_list:
             column_names.append(bot.name)
@@ -196,7 +251,20 @@ class Game():
             df = df.append(rating_dict, ignore_index=True)
 
         print(df)
-        self.Create_plot(df, 'round_robin')
+        self.Create_line_plot(df, 'round_robin')
+
+        for bot in bot_list:
+            print('Bot {0} needed {1} seconds.'.format(bot.name, bot.elapsed_time))
+            time_dict[bot.name] = bot.elapsed_time # Create a dictionary
+
+        df2 = pd.DataFrame(columns = column_names)
+
+        df2 = df2.append(time_dict, ignore_index=True)
+
+        print(df2)
+
+        self.Create_bar_plot(df2, 'elapsed_time')
+
 
     def Play_round_robin(self, bot_list, board):
         """Creates and plays a round robin tournament with the bots given
@@ -229,6 +297,7 @@ class Game():
             second_participant = bots[1]
             second_participant_bot = second_participant.get_competitor()
             # Print their names
+            print('########################################')
             print("{} vs {}".format(first_participant_bot.name, second_participant_bot.name))
             
             first_participant_bot, second_participant_bot = self.Play_TrueSkill_match(self.tourney_rounds, board, first_participant_bot, second_participant_bot)
