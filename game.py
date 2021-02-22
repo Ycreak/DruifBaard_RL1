@@ -10,15 +10,12 @@ from gameboard import Gameboard
 
 class Game():
 
-    def __init__(self, board_dimension, perform_experiments, *bots):
+    def __init__(self, board_dimension, perform_experiments, bot_list):
         
         self.board_dimension = board_dimension
         self.perform_experiments = perform_experiments
         
-        self.bot_list = []
-
-        for bot in bots:
-            self.bot_list.append(bot)
+        self.bot_list = bot_list
         
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
@@ -79,7 +76,7 @@ class Game():
             int: describing who won
         """        
 
-        # Play the game on a nice empty board.
+        # Play the game on a nice empty board. TODO: this is now deprecated.
         board = np.zeros(shape=(self.board_dimension + 1, self.board_dimension + 1), dtype=int)
 
         while(True):
@@ -171,28 +168,35 @@ class Game():
         """        
         self.tourney_rounds = 1
 
-        # Create Pandas Dataframe
-        column_names = [b1.name, b2.name, b3.name, b4.name]
+        column_names = []
+        rating_dict = {}
+
+        for bot in bot_list:
+            column_names.append(bot.name)
+            rating_dict[bot.name] = bot.rating # Create a dictionary
+
         df = pd.DataFrame(columns = column_names)
-        start_position = {b1.name : b1.rating, b2.name : b2.rating, b3.name : b3.rating,
-            b4.name : b4.rating}
-        df = df.append(start_position, ignore_index=True)
+        # Add initial rating
+        df = df.append(rating_dict, ignore_index=True)
 
         # TODO: Should be using args*
         for i in range(self.tourney_rounds):
             print("Round", i)
             # Play a round robin between the players
-            b1, b2, b3, b4 = self.Play_round_robin(b1, b2, b3, b4)
+            bot_list = self.Play_round_robin(bot_list)
+
+            # Empty dict and add new ratings           
+            rating_dict = {}
+            for bot in bot_list:
+                rating_dict[bot.name] = bot.rating.mu # Create a dictionary            
 
             # Add scores to dataframe
-            new_line = {b1.name : b1.rating.mu, b2.name : b2.rating.mu, b3.name : b3.rating.mu,
-                b4.name : b4.rating.mu}
-            df = df.append(new_line, ignore_index=True)
+            df = df.append(rating_dict, ignore_index=True)
 
         print(df)
         self.Create_plot(df, 'round_robin')
 
-    def Play_round_robin(self, b1, b2, b3, b4):
+    def Play_round_robin(self, bot_list):
         """Creates and plays a round robin tournament with the bots given
 
         Args:
@@ -206,9 +210,9 @@ class Game():
         """        
         from round_robin_tournament import Tournament
   
-        players = [b1, b2, b3, b4]
+        # players = [b1, b2, b3, b4]
 
-        tournament = Tournament(players)
+        tournament = Tournament(bot_list)
 
         matches = tournament.get_active_matches()
 
@@ -230,7 +234,7 @@ class Game():
             tournament.add_win(match, first_participant_bot)
             matches = tournament.get_active_matches()
 
-        return b1, b2, b3, b4
+        return bot_list
 
 
 
