@@ -32,26 +32,26 @@ class MyBot():
 
 if __name__ == '__main__':
 
-    board_dimension = 5
+    board_dimension = 3
     perform_experiments = True
-    tourney_rounds = 2
+    tourney_rounds = 1
 
 
     # Algorithms for the bots
     # self.bot1 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit = 1)
-    bot1 = MyBot('rnd', 'random')
-    bot2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
-    bot3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
-    bot4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
-    bot5 = MyBot('mcts', 'mcts', iterations=500)
+    # bot1 = MyBot('rnd', 'random')
+    # bot2 = MyBot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
+    # bot3 = MyBot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
+    # bot4 = MyBot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
+    # bot5 = MyBot('mcts', 'mcts', iterations=500)
 
-    bot_list = [
-        bot1,
-        bot2,
-        bot3,
-        bot4,
-        bot5
-        ]
+    # bot_list = [
+    #     bot1,
+    #     bot2,
+    #     bot3,
+    #     bot4,
+    #     bot5
+    #     ]
 
-    game = Game(board_dimension, perform_experiments, tourney_rounds, bot_list)
+    game = Game(board_dimension, perform_experiments, tourney_rounds)
 

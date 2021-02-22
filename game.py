@@ -5,25 +5,41 @@ import random
 
 from trueskill import Rating, quality_1vs1, rate_1vs1
 
-from bot import Bot
+from bot import Bot as bot
 from gameboard import Gameboard
 
 class Game():
 
-    def __init__(self, board_dimension, perform_experiments, tourney_rounds, bot_list):
+    def __init__(self, board_dimension, perform_experiments, tourney_rounds):
+        
+        # Initialise the other classes
+        # self.bot = bot
         
         self.board_dimension = board_dimension
         self.perform_experiments = perform_experiments
         self.tourney_rounds = tourney_rounds
 
-        self.bot_list = bot_list
-        
+        # self.bot_list = bot_list
+        # self.method = bot().Check_winning
+
+        bot1 = bot('rnd', 'random')
+        bot2 = bot('ab3R', 'alphabeta', search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
+        bot3 = bot('ab3D', 'alphabeta', search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
+        bot4 = bot('ab4D', 'alphabeta', search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
+        bot5 = bot('mcts', 'mcts', iterations=500)
+
+        self.bot_list = [
+            bot1,
+            bot2,
+            bot3,
+            bot4,
+            bot5
+            ]
+
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
         # Save it to a class variable    
         self.board = self.gameboard.board      
-        # Initialise the other classes
-        self.bot = Bot()
         
         if self.perform_experiments:
             self.Perform_experiments(self.board, self.bot_list)
@@ -85,8 +101,8 @@ class Game():
             if not self.gameboard.Check_board_full(board):
                 board = self.Handle_bot_move(board, bot1, 'player1')
                 # Do move for first player
-                if self.bot.Check_winning(board) == 1:
-                    print(bot.name1, 'has won!')
+                if bot1.Check_winning(board) == 1:
+                    print(bot1.name, 'has won!')
                     outcome = 1
                     break
             else:
@@ -98,7 +114,7 @@ class Game():
             if not self.gameboard.Check_board_full(board):
                 # Do move for first player
                 board = self.Handle_bot_move(board, bot2, 'player2')
-                if self.bot.Check_winning(board) == 2:
+                if bot1.Check_winning(board) == 2: #TODO: big brain time.
                     print(bot2.name, 'has won!')
                     outcome = 2
                     break
@@ -127,7 +143,7 @@ class Game():
         TODO: Revise this class.
         """           
 
-        row, col = self.bot.Do_move(board, bot)   
+        row, col = bot.Do_move(board, bot)   
         
         if row < 0 or row > self.board_dimension or col < 0 or col > self.board_dimension:
             raise Exception('Row or col exceeds board boundaries: \n\trow: {0}\n\tcol: {1}\n\tdimension: {2}'.format(row, col, self.board_dimension)) 
