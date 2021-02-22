@@ -123,8 +123,6 @@ class Bot:
         alpha = float('-inf')
         beta = float('inf')
 
-        begin_time = time.time()
-
         #When the time limit is 0, we dont want to use iterative deepening
         use_id = (id_time_limit != 0)
 
@@ -157,8 +155,6 @@ class Bot:
             else:
                 value, space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra)
             
-        end_time = time.time()
-        print(end_time-begin_time)
         row, col = space
         return row, col    
         
