@@ -28,7 +28,7 @@ class Game():
         self.bot2 = bot('ab3R', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
         self.bot3 = bot('ab3D', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
         self.bot4 = bot('ab4D', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
-        self.bot5 = bot('mcts', 'mcts', self.board_dimension, iterations=50000)
+        self.bot5 = bot('mcts', 'mcts', self.board_dimension, iterations=10000)
         self.bot6 = bot('ab4D_TT', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0)
         self.bot7 = bot('ab4D_TT_ID0.5', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0.5)
         self.bot8 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
@@ -58,7 +58,7 @@ class Game():
             exit(1)
 
         for _ in range(20):
-            res = self.Play_single_bot_match(self.bot_list[2], self.bot_list[4], self.board)
+            res = self.Play_single_bot_match(self.bot_list[6], self.bot_list[4], self.board)
             print("Player " + str(res) + " won")
 
     def Play_TrueSkill_match(self, board, rounds, bot1, bot2):
