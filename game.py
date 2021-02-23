@@ -28,7 +28,7 @@ class Game():
         self.bot2 = bot('ab3R', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
         self.bot3 = bot('ab3D', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
         self.bot4 = bot('ab4D', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
-        self.bot5 = bot('mcts', 'mcts', self.board_dimension, iterations=500)
+        self.bot5 = bot('mcts', 'mcts', self.board_dimension, iterations=50000)
         self.bot6 = bot('ab4D_TT', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0)
         self.bot7 = bot('ab4D_TT_ID0.5', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0.5)
         self.bot8 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)

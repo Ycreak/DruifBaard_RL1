@@ -28,7 +28,7 @@ class Node:
         """Calculates UCT and determines the best child node
 
         Args:
-            c_param (float, optional): A turing parameter. Defaults to 1.0.
+            c_param (float, optional): A tuning parameter. Defaults to sqrt(2).
 
         Returns:
             Node: The child node with the highest UCT score
@@ -872,19 +872,18 @@ class Bot:
         simulation_board = copy.deepcopy(node.board) # Board to play a random simulation on
         simulation_player = node.player              # Player that has to make the next move
         while 1: # Keep playing until...
-            final = self.Check_winning(simulation_board)    
+            final = self.Check_winning(simulation_board)
             if final != 0:
-                #print(simulation_board)
+                # print(simulation_board)
                 if final == player:
                     return 1 # The player won
                 else:
                     return 0 # The player lost
-            elif (len(np.argwhere(node.board == 0)) == 0):
-                #print(simulation_board)
+            elif (len(np.argwhere(simulation_board == 0)) == 0):
                 return 0 # It is a draw
-
+  
             # Take a random non-zero field and play it
-            indeces = np.argwhere(node.board == 0)
+            indeces = np.argwhere(simulation_board == 0)
             row, col = random.choice(indeces)
             simulation_board[row, col] = simulation_player
 
@@ -945,7 +944,7 @@ class Bot:
             # print(str(leaf.parent.q))
             
             i = i + 1
-            # if i == 2:
+            # if i == 10:
             #     exit()
 
         best_child = root.best_child()
