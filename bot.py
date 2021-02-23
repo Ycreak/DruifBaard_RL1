@@ -61,8 +61,6 @@ class Bot:
             self.transposition_table = {}
         self.elapsed_time = elapsed_time
 
-    def Do_move(self, board, bot): 
-
         self.iterations = iterations
 
     def Do_move(self, board, bot): 
