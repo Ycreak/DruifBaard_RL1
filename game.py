@@ -14,33 +14,48 @@ class Game():
 
     def __init__(self, board_dimension, perform_experiments, tourney_rounds):
         
-        # Initialise the other classes
-        # self.bot = bot
-        
+        # Set global parameters
         self.board_dimension = board_dimension
         self.perform_experiments = perform_experiments
         self.tourney_rounds = tourney_rounds
 
-        # self.bot_list = bot_list
-        # self.method = bot().Check_winning
-
+        # Create our bots
         self.bot1 = bot('rnd', 'random', self.board_dimension)
         self.bot2 = bot('ab3R', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
         self.bot3 = bot('ab3D', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
         self.bot4 = bot('ab4D', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
-        self.bot5 = bot('mcts', 'mcts', self.board_dimension, iterations=10000)
+        self.bot5 = bot('mcts500', 'mcts', self.board_dimension, iterations=500)
         self.bot6 = bot('ab4D_TT', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0)
         self.bot7 = bot('ab4D_TT_ID0.5', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0.5)
         self.bot8 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
         self.bot9 = bot('ab4D_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
+        self.bot10 = bot('mcts1k', 'mcts', self.board_dimension, iterations=1000)
+        self.bot11 = bot('mcts5k', 'mcts', self.board_dimension, iterations=5000)
+        self.bot12 = bot('mcts10k', 'mcts', self.board_dimension, iterations=10000)
+
+        # Set experiment lists
+        self.alphabeta_experiment = [
+            self.bot2, self.bot3, self.bot4
+        ]
+
+        self.alphabeta_plus_experiment = [
+            self.bot4, self.bot6, self.bot7, self.bot8, self.bot9
+        ]
+
+        self.alphabeta_plus_search_depth_experiment = [
+            self.bot1
+        ]
+
+        self.mcts_experiment = [
+            self.bot5, self.bot10, self.bot11, self.bot12
+        ]
 
         self.bot_list = [
             # self.bot1,
-            self.bot1,
-            self.bot2,
-            self.bot3,
+            # self.bot2,
+            # self.bot3,
             self.bot4,
-            self.bot5,
+            # self.bot5,
             self.bot6,
             self.bot7,
             self.bot8,
@@ -49,14 +64,15 @@ class Game():
 
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
-        # Save it to a class variable    
         self.board = self.gameboard.board      
         
+        # Choose to perform experiments
         if self.perform_experiments:
-            self.Perform_experiments(self.board, self.bot_list)
+            self.Perform_experiments(self.board, self.mcts_experiment)
             print('End of experiments, shutting down.')
             exit(1)
 
+        # Or just a few matches between two bots
         for _ in range(20):
             res = self.Play_single_bot_match(self.bot_list[6], self.bot_list[4], self.board)
             print("Player " + str(res) + " won")
@@ -201,8 +217,8 @@ class Game():
         # To make X axis nice integers
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-        plt.savefig('plots/{0}.png'.format(filename))
         plt.show()
+        plt.savefig('plots/{0}.png'.format(filename))
 
     def Create_bar_plot(self, df, filename):
         ax = df.T.plot(title='Round Robin on {0}x{0}'.format(self.board_dimension+1), kind='bar')
@@ -215,10 +231,10 @@ class Game():
         
         ax.get_legend().remove()
         
+        plt.show()
         plt.savefig('plots/{0}.png'.format(filename))
 
 
-        # plt.show()
 
     def Perform_experiments(self, board, bot_list):
         """This class performs the experiments as required in the Assignment
