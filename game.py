@@ -60,7 +60,7 @@ class Game():
             self.bot7,
             self.bot8,
             self.bot9
-            ]
+        ]
 
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
