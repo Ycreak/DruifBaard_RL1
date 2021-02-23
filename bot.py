@@ -48,6 +48,7 @@ class Bot:
         self.search_depth = search_depth
         self.use_dijkstra = use_dijkstra
         self.algorithm = algorithm
+        self.iterations = iterations
 
         self.id_time_limit = id_time_limit
         self.use_tt = use_tt
@@ -61,9 +62,9 @@ class Bot:
             self.transposition_table = {}
         self.elapsed_time = elapsed_time
 
-    def Do_move(self, board, bot): 
 
-        self.iterations = iterations
+
+        
 
     def Do_move(self, board, bot): 
         if bot.algorithm == 'random':
