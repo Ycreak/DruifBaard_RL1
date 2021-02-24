@@ -30,6 +30,10 @@ class Game():
         self.bot10 = bot('mcts1k', 'mcts', self.board_dimension, iterations=1000)
         self.bot11 = bot('mcts5k', 'mcts', self.board_dimension, iterations=5000)
         self.bot12 = bot('mcts10k', 'mcts', self.board_dimension, iterations=10000)
+        self.bot13 = bot('mcts5k_C0.7', 'mcts', self.board_dimension, iterations=5000, c_param=0.7)
+        self.bot14 = bot('mcts5k_C1.0', 'mcts', self.board_dimension, iterations=5000, c_param=1)
+        self.bot15 = bot('mcts5k_C1.3', 'mcts', self.board_dimension, iterations=5000, c_param=1.3)
+
         # Set experiment lists
         self.alphabeta_experiment = [
             self.bot2, self.bot3, self.bot4
@@ -42,6 +46,9 @@ class Game():
         ]
         self.mcts_experiment = [
             self.bot5, self.bot10, self.bot11, self.bot12
+        ]
+        self.mcts_experiment2 = [
+            self.bot13, self.bot14, self.bot15
         ]
         self.bot_list = [
             # self.bot1,
@@ -60,7 +67,7 @@ class Game():
         
         # Choose to perform experiments
         if self.perform_experiments:
-            self.Perform_experiments(self.board, self.alphabeta_plus_search_depth_experiment)
+            self.Perform_experiments(self.board, self.mcts_experiment2)
             print('End of experiments, shutting down.')
             exit(1)
 
