@@ -66,7 +66,7 @@ class Game():
 
         # Or just a few matches between two bots
         for _ in range(20):
-            res = self.Play_single_bot_match(self.bot_list[2], self.bot_list[4], self.board)
+            res = self.Play_single_bot_match(self.bot_list[6], self.bot_list[4], self.board)
             print("Player " + str(res) + " won")
 
     def Play_TrueSkill_match(self, board, rounds, bot1, bot2):
