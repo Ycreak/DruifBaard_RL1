@@ -41,7 +41,7 @@ class Node:
 
 
 class Bot:
-    def __init__(self, name, algorithm, board_dimension, iterations=500, search_depth=-1, use_dijkstra=False,
+    def __init__(self, name, algorithm, board_dimension, iterations=500, c_param=1, search_depth=-1, use_dijkstra=False,
             id_time_limit=0, use_tt=False, elapsed_time=0):
         self.name = name
         self.rating = 25
@@ -49,6 +49,7 @@ class Bot:
         self.use_dijkstra = use_dijkstra
         self.algorithm = algorithm
         self.iterations = iterations
+        self.c_param = c_param
 
         self.id_time_limit = id_time_limit
         self.use_tt = use_tt
@@ -74,7 +75,7 @@ class Bot:
         elif bot.algorithm == 'alphabeta':
             return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_dijkstra, bot.use_tt, bot.id_time_limit, bot)
         elif bot.algorithm == 'mcts':
-            return self.Mcts_bot(board, bot.iterations)
+            return self.Mcts_bot(board, bot.iterations, bot.c_param)
         else:
             raise Exception('The bot type {0} is not recognised. \nPlease choose random, alphabeta or mcts.'.format(bot.algorithm)) 
 
@@ -875,7 +876,7 @@ class Bot:
             node.children.append(Node(board=copy_board, player=1, parent=node, row=row, col=col))
         return node.children[-1]
     
-    def select(self, node):
+    def select(self, node, c_param):
         """Traverse the tree to find the most promising leaf and expand it (if possible)
 
         Args:
@@ -885,7 +886,7 @@ class Bot:
             Node: The expanded node of the most promising leaf
         """
         while node.fully_expanded() and not (self.is_terminal(node) > 0):
-            node = node.best_child()
+            node = node.best_child(c_param)
         
         if not (self.is_terminal(node) > 0):
             return self.expand(node) # The node can be expanded
@@ -938,7 +939,7 @@ class Bot:
         else:
             self.backpropagate(node.parent, result)
     
-    def Mcts_bot(self, board, iterations):
+    def Mcts_bot(self, board, iterations, c_param):
         # Get all the empty spaces
         empty_spaces = np.argwhere(board == 0)
 
@@ -957,7 +958,7 @@ class Bot:
         
         i = 0
         while i < iterations:
-            leaf = self.select(root)    # Select and expand
+            leaf = self.select(root, c_param)    # Select and expand
             # print("selected:")
             # print(leaf.parent.board)
             # print("expanded to:")
@@ -975,6 +976,6 @@ class Bot:
             
             i = i + 1
 
-        best_child = root.best_child()
+        best_child = root.best_child(c_param)
         return best_child.row, best_child.col
 
