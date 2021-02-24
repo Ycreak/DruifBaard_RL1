@@ -62,6 +62,8 @@ class Bot:
             self.transposition_table = {}
         self.elapsed_time = elapsed_time
 
+        self.searched_nodes = 0
+        self.cutoffs = 0
 
 
         
@@ -104,7 +106,7 @@ class Bot:
             use_tt (bool): True if we use transposition tables to Store_result and load previous results from, 
                 False if we do not
             id_time_limit (float): time limit for iterative deepening, 0 if we dont want to use iterative deepening
-
+            bot (Bot): bot to acces information for transposition tables
         Returns:
             ints: of position to play
         """            
@@ -142,10 +144,11 @@ class Bot:
 
             #Keep searching till time time is up
             while self.StillGotTime(end_time):
+                #print("Depth: ", depth_id)
                 if use_tt:
                     value, space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
                 else:
-                    value, space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra)
+                    value, space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, bot)
                 
                 #Next loop we use a higer search depth
                 depth_id = depth_id + 1
@@ -154,12 +157,12 @@ class Bot:
             if use_tt:
                 value, space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
             else:
-                value, space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra)
+                value, space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, bot)
             
         row, col = space
         return row, col    
         
-    def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra):
+    def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra, bot):
         """Minimax algorithm. 
             The algorithm returns the value of the current playstate and the best space in this state.
 
@@ -206,14 +209,19 @@ class Bot:
             max_space = [-200, -200]
             spaces = np.argwhere(board == 0)
 
+            number_of_spaces = int(spaces.size/2)
+            number_of_searched_nodes = 0
+
             for space in spaces:
+                number_of_searched_nodes = number_of_searched_nodes + 1
+                bot.searched_nodes = bot.searched_nodes + 1
 
                 #Make a copy of the game board and take the space in that board
                 copy_board = copy.deepcopy(board)
                 row, col = space
                 copy_board[row, col] = 1
 
-                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, False, use_dijkstra)
+                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, False, use_dijkstra, bot)
                 
                 if value > max_value:
                     max_value = value
@@ -222,6 +230,7 @@ class Bot:
                 #Alpha-beta pruning
                 alpha = max(alpha, value)
                 if beta <= alpha:
+                    bot.cutoffs = bot.cutoffs + (number_of_spaces - number_of_searched_nodes)
                     break
 
             return max_value, max_space
@@ -232,14 +241,19 @@ class Bot:
             min_space = [-300, -300]
             spaces = np.argwhere(board == 0)
 
+            number_of_spaces = int(spaces.size/2)
+            number_of_searched_nodes = 0
+
             for space in spaces:
+                number_of_searched_nodes = number_of_searched_nodes + 1
+                bot.searched_nodes = bot.searched_nodes + 1
 
                 #Make a copy of the game board and take the space in that board
                 copy_board = copy.deepcopy(board)
                 row, col = space
                 copy_board[row, col] = 2
 
-                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, True, use_dijkstra)
+                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, True, use_dijkstra, bot)
 
                 if value < min_value:
                     min_value = value
@@ -248,6 +262,7 @@ class Bot:
                 #Alpha-beta pruning
                 beta = min(beta, value)
                 if beta <= alpha:
+                    bot.cutoffs = bot.cutoffs + (number_of_spaces - number_of_searched_nodes)
                     break
 
             return min_value, min_space
@@ -267,6 +282,7 @@ class Bot:
                 False if we use the random evaluation method
             hashed_board (int): A hashed version of the playboard to easily store in the transposition tables
                 -1 if the board has not been made yet
+            bot (Bot): bot to acces information for transposition tables
 
         Returns:
             int, [int, int]: The first int returned is the value of the evaluation. 
@@ -316,8 +332,14 @@ class Bot:
             max_value = float('-inf')
             max_space = [-200, -200]
             spaces = np.argwhere(board == 0)
+
+            number_of_spaces = int(spaces.size/2)
+            number_of_searched_nodes = 0
             
             for space in spaces:
+                number_of_searched_nodes = number_of_searched_nodes + 1
+                bot.searched_nodes = bot.searched_nodes + 1
+
                 #Make a copy of the game board and take the space in that board
                 copy_board = copy.deepcopy(board)
                 row, col = space
@@ -335,6 +357,7 @@ class Bot:
                 #Alpha-beta pruning
                 alpha = max(alpha, value)
                 if beta <= alpha:
+                    bot.cutoffs = bot.cutoffs + (number_of_spaces - number_of_searched_nodes)
                     break
             
             self.Store_result(hashed_board, depth, max_value, max_space, bot)
@@ -345,8 +368,13 @@ class Bot:
             min_value = float('inf')
             min_space = [-300, -300]
             spaces = np.argwhere(board == 0)
+            
+            number_of_spaces = int(spaces.size/2)
+            number_of_searched_nodes = 0
 
             for space in spaces:
+                number_of_searched_nodes = number_of_searched_nodes + 1
+                bot.searched_nodes = bot.searched_nodes + 1
 
                 #Make a copy of the game board and take the space in that board
                 copy_board = copy.deepcopy(board)
@@ -365,6 +393,7 @@ class Bot:
                 #Alpha-beta pruning
                 beta = min(beta, value)
                 if beta <= alpha:
+                    bot.cutoffs = bot.cutoffs + (number_of_spaces - number_of_searched_nodes)
                     break
             
             self.Store_result(hashed_board, depth, min_value, min_space, bot)
@@ -613,6 +642,7 @@ class Bot:
         Args:
             hashed_board (int): hashed version of the game board
             depth (int): the number of rounds forward the algorithm would have looked 
+            bot (Bot): bot to acces information for transposition tables
 
         Returns:
             [bool, int, [int, int]]: The bool: True on a succesfull load, False when the state has not been seen before
@@ -633,6 +663,7 @@ class Bot:
             depth (int): the number of rounds forward the algorithm would have looked 
             value (int): the calculated value of the game state
             space ([int, int]): the calculated best move of the game state
+            bot (Bot): bot to acces information for transposition tables
         """        
       
         row, col = space
@@ -644,6 +675,7 @@ class Bot:
 
         Args:
             board (np array): the current playboard
+            bot (Bot): bot to acces information for transposition tables
 
         Returns:
             [int]: Hashed version of the gameboard

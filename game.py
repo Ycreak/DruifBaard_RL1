@@ -269,6 +269,13 @@ class Game():
 
         # self.Create_bar_plot(df2, 'elapsed_time')
 
+        # Print the number of searched nodes and cutoffs
+        for bot in bot_list:
+            if bot.searched_nodes > 0:
+                print('Bot {0} searched {1} nodes.'.format(bot.name, bot.searched_nodes))
+            if bot.cutoffs > 0:
+                print('Bot {0} had {1} cutoffs.'.format(bot.name, bot.cutoffs))
+
 
     def Play_round_robin(self, bot_list, board):
         """Creates and plays a round robin tourney with the bots given.
