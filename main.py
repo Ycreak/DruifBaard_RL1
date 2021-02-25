@@ -11,6 +11,7 @@ RUN AS FOLLOWS:
 
    To run the experiments, the round-robin-tournament package is required:
    https://pypi.org/project/round-robin-tournament/
+
 ''' 
 
 from game import Game
@@ -24,6 +25,9 @@ if __name__ == '__main__':
     """
     board_dimension = 4
     perform_experiments = True
-    tourney_rounds = 3
+    tourney_rounds = 4
+
+    human_playing = False
+
     # Call the game class, which handles the rest of the game.
-    game = Game(board_dimension, perform_experiments, tourney_rounds)
+    game = Game(board_dimension, perform_experiments, tourney_rounds, human_playing)
