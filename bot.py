@@ -42,7 +42,7 @@ class Node:
 
 class Bot:
     def __init__(self, name, algorithm, board_dimension, iterations=500, c_param=1, search_depth=-1, use_dijkstra=False,
-            id_time_limit=0, use_tt=False, elapsed_time=0):
+            id_time_limit=0, use_tt=False, elapsed_time=0, mcts_time_limit=None):
         self.name = name
         self.rating = 25
         self.search_depth = search_depth
@@ -50,6 +50,7 @@ class Bot:
         self.algorithm = algorithm
         self.iterations = iterations
         self.c_param = c_param
+        self.mcts_time_limit = mcts_time_limit
 
         self.id_time_limit = id_time_limit
         self.use_tt = use_tt
@@ -75,7 +76,7 @@ class Bot:
         elif bot.algorithm == 'alphabeta':
             return self.Alpha_Beta_bot(board, bot.search_depth, bot.use_dijkstra, bot.use_tt, bot.id_time_limit, bot)
         elif bot.algorithm == 'mcts':
-            return self.Mcts_bot(board, bot.iterations, bot.c_param)
+            return self.Mcts_bot(board, bot.iterations, bot.c_param, bot.mcts_time_limit)
         else:
             raise Exception('The bot type {0} is not recognised. \nPlease choose random, alphabeta or mcts.'.format(bot.algorithm)) 
 
@@ -929,7 +930,10 @@ class Bot:
         else:
             self.backpropagate(node.parent, result)
     
-    def Mcts_bot(self, board, iterations, c_param):
+    def Mcts_bot(self, board, iterations, c_param, mcts_time_limit=None):
+        if mcts_time_limit != None:
+            end_time = time.time() + mcts_time_limit
+
         # Get all the empty spaces
         empty_spaces = np.argwhere(board == 0)
 
@@ -948,6 +952,10 @@ class Bot:
         
         i = 0
         while i < iterations:
+            if mcts_time_limit != None:
+                if time.time() >= end_time:
+                    break
+
             leaf = self.select(root, c_param)    # Select and expand
             # print("selected:")
             # print(leaf.parent.board)
