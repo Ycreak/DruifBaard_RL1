@@ -131,29 +131,29 @@ class Bot:
         use_id = (id_time_limit != 0)
 
         if use_id:
-            #Computing the end time for the search
-            begin_time = time.time()
-            end_time = begin_time + id_time_limit
-            
             #The initial search depth
             depth_id = 1
 
             value = -130
             space = [-130, -130]
 
-            #self.Initialise_tt()
+            #Computing the end time for the search
+            end_time = time.time() + id_time_limit
 
             #Keep searching till time time is up
-            while self.StillGotTime(end_time):
-                #print("Depth: ", depth_id)
+            while time.time() < end_time:
+    
                 if use_tt:
-                    value, space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
+                    new_value, new_space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
                 else:
-                    value, space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, bot)
+                    new_value, new_space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, bot)
                 
+                value = new_value
+                space = new_space
+
                 #Next loop we use a higer search depth
                 depth_id = depth_id + 1
-            
+
         else:
             if use_tt:
                 value, space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
@@ -161,6 +161,10 @@ class Bot:
                 value, space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, bot)
             
         row, col = space
+
+        if row == -130:
+            return self.Random_bot(board)
+
         return row, col    
         
     def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra, bot):
@@ -695,20 +699,6 @@ class Bot:
                     hashed_board ^= bot.hash_table[row][col][space]
 
         return hashed_board
-
-    def StillGotTime(self, end_time):
-        """Check if there is still time left for searching
-
-        Args:
-            end_time (float): time for which the algorithm should stop searching
-
-        Returns:
-            bool: True if there is still time left,
-                False if there is no time left
-        """        
-        current_time = time.time()
-
-        return current_time < end_time
 
     def Check_winning(self, board):
         """Returns if one of the players has won the game 
