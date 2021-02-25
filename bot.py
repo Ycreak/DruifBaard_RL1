@@ -26,17 +26,17 @@ class Node:
         """        
         return len(self.children) >= len(np.argwhere(self.board == 0))
     
-    def best_child(self, c_param=1):
+    def best_child(self, c_param=np.sqrt(2)):
         """Calculates UCT and determines the best child node
 
         Args:
-            c_param (float, optional): A tuning parameter. Defaults to 1.
+            c_param (float, optional): A tuning parameter. Defaults to sqrt(2).
 
         Returns:
             Node: The child node with the highest UCT score
         """         
         choices_weights = [
-            (c.q / c.n) + c_param * np.sqrt((np.log(self.n) / c.n))
+            (c.q / c.n) + c_param * np.sqrt((np.log(self.n) / c.n)) if c.n > 0 else 0
             for c in self.children
         ]
         return self.children[np.argmax(choices_weights)]
@@ -908,7 +908,7 @@ class Bot:
 
         Returns:
             Node: The expanded node of the most promising leaf
-        """
+        """        
         while node.fully_expanded() and not (self.is_terminal(node) > 0):
             node = node.best_child(c_param)
         
@@ -936,6 +936,8 @@ class Bot:
                     return 1 # The player won
                 else:
                     return 0 # The player lost
+            elif (len(np.argwhere(simulation_board == 0)) == 0):
+                return 0 # It is a draw
   
             # Take a random non-zero field and play it
             indeces = np.argwhere(simulation_board == 0)
@@ -953,7 +955,7 @@ class Bot:
 
         Args:
             node (Node): Node to backpropagate
-            result (int): The rollout value (1,0)
+            result (int): The rollout value (1,0,-1)
         """        
         node.n = node.n + 1         # Add an extra visit
         node.q = node.q + result    # Add the rollout result
@@ -1006,6 +1008,8 @@ class Bot:
             # print(str(leaf.parent.q))
             
             i = i + 1
+            # if i == 10:
+            #     exit()
 
         best_child = root.best_child(c_param)
         return best_child.row, best_child.col

@@ -48,7 +48,7 @@ class Game():
             self.bot7, self.bot8 , self.bot9
         ]
         self.mcts_experiment = [
-            self.bot5, self.bot10, self.bot11, self.bot12
+            self.bot10, self.bot11 #, self.bot12
         ]
         self.mcts_experiment2 = [
             self.bot13, self.bot14, self.bot15
@@ -75,7 +75,7 @@ class Game():
         
         # Choose to perform experiments
         if self.perform_experiments:
-            self.Perform_experiments(self.board, self.alphabeta_id)
+            self.Perform_experiments(self.board, self.mcts_experiment)
             print('End of experiments, shutting down.')
             exit(1)
 
