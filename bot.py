@@ -3,6 +3,8 @@ import copy
 import numpy as np
 from random import randrange
 import time
+import multiprocessing
+from multiprocessing import Manager
 
 class Node:
     def __init__(self, board, player, parent, row, col):
@@ -132,28 +134,29 @@ class Bot:
         use_id = (id_time_limit != 0)
 
         if use_id:
-            #The initial search depth
-            depth_id = 1
+            #Initialize the communication between the processes
+            manager = Manager()
+            communication = manager.list()
+            communication.append([-130, -130])
+            
+            #Create a process to search for the best move
+            process = multiprocessing.Process(target=self.Iterative_deepening, name="Iterative_deepening", args=(communication, use_tt, copy_board, alpha, beta, maximizing_player, use_dijkstra, bot))
+            process.start()
 
-            value = -130
-            space = [-130, -130]
+            #Wait for the time limit to be over
+            time.sleep(id_time_limit)
+            
+            #Terminate the search
+            process.terminate()
+            process.join()
 
-            #Computing the end time for the search
-            end_time = time.time() + id_time_limit
+            row, col = communication[0]
 
-            #Keep searching till time time is up
-            while time.time() < end_time:
-    
-                if use_tt:
-                    new_value, new_space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
-                else:
-                    new_value, new_space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, bot)
-                
-                value = new_value
-                space = new_space
+            #If the search could not complete depth 1 search, choose a random move
+            if row == -130:
+                return self.Random_bot(board)
 
-                #Next loop we use a higer search depth
-                depth_id = depth_id + 1
+            return row, col
 
         else:
             if use_tt:
@@ -163,10 +166,40 @@ class Bot:
             
         row, col = space
 
-        if row == -130:
-            return self.Random_bot(board)
+        return row, col   
 
-        return row, col    
+    def Iterative_deepening(self, communication, use_tt, copy_board, alpha, beta, maximizing_player, use_dijkstra, bot):
+        """[summary]
+        Args:
+            communication (list): List of information to be transfered between the processes
+            use_tt (bool): True if we use transposition tables to Store_result and load previous results from, 
+                False if we do not
+            copy_board (np array): a copy of the current playboard
+            alpha (int): the current minimum value of the maximizing player in the alpha-beta pruning
+            beta (int):  the current maximum value of the minimizing player in the alpha-beta pruning
+            max_player (bool): True if it is the turn of player 1, the maximizing player in the evaluation, 
+                False if it is the turn of player 2.
+            use_dijkstra (bool): True if we use the Dijkstra evaluation method, 
+                False if we use the random evaluation method
+            bot (Bot): bot to acces information for transposition tables
+        """        
+
+        #The initial search depth
+        depth_id = 1
+
+        #Keep searching till time time is up
+        while True:
+            if use_tt:
+                new_value, new_space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
+            else:
+                new_value, new_space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, bot)
+            
+            communication[0] = new_space
+
+            #Next loop we use a higer search depth
+            depth_id = depth_id + 1
+
+        return
         
     def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra, bot):
         """Minimax algorithm. 
