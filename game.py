@@ -26,8 +26,8 @@ class Game():
         self.bot5 = bot('mcts500', 'mcts', self.board_dimension, iterations=500)
         self.bot6 = bot('ab4D_TT', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0)
         self.bot7 = bot('ab_TT_ID1', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
-        self.bot8 = bot('ab_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
-        self.bot9 = bot('ab_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
+        self.bot8 = bot('ab_TT_ID5', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=5)
+        self.bot9 = bot('ab_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
         self.bot10 = bot('mcts1k', 'mcts', self.board_dimension, iterations=1000)
         self.bot11 = bot('mcts5k', 'mcts', self.board_dimension, iterations=5000)
         self.bot12 = bot('mcts10k', 'mcts', self.board_dimension, iterations=10000)
@@ -43,6 +43,11 @@ class Game():
         self.bot18 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
         self.bot19 = bot('ab4D_TT_ID3', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=3)
 
+        self.bot24 = bot('ab4D_TT_ID1', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
+        self.bot25 = bot('mctsinf_T1', 'mcts', self.board_dimension, iterations=100000000, c_param=0.1, mcts_time_limit=1)
+
+        self.bot26 = bot('ab4D_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
+        self.bot27 = bot('mctsinf_T10', 'mcts', self.board_dimension, iterations=100000000, c_param=0.1, mcts_time_limit=10)
 
         # Set experiment lists
         self.ab = [
@@ -58,7 +63,7 @@ class Game():
             self.bot5, self.bot10, self.bot11, self.bot12
         ]
         self.mcts_timed = [
-            self.bot16, self.bot17
+            self.bot20, self.bot21
         ]
         self.mcts_c = [
             self.bot13, self.bot14, self.bot15
@@ -84,7 +89,7 @@ class Game():
         
         # Allow the human to play against the given bot
         if human_playing:
-            res = self.Play_human_match(self.bot19, self.board)
+            res = self.Play_human_match(self.bot22, self.board)
 
         # Choose to perform experiments
         if self.perform_experiments:
@@ -158,7 +163,7 @@ class Game():
                 # This finds a bot move and handles board update
                 board, elapsed_time = self.Handle_bot_move(board, bot1, 'player1')
                 bot1.elapsed_time += elapsed_time
-                if self.bot1.Check_winning(board) == 1: #FIXME: this is bad
+                if self.bot1.Check_winning(board) == 1:
                     print(bot1.name, 'has won!')
                     outcome = 1
                     break
@@ -171,7 +176,7 @@ class Game():
                 # Do move for second player
                 board, elapsed_time = self.Handle_bot_move(board, bot2, 'player2')
                 bot2.elapsed_time += elapsed_time
-                if self.bot1.Check_winning(board) == 2: #FIXME: this is bad
+                if self.bot1.Check_winning(board) == 2:
                     print(bot2.name, 'has won!')
                     outcome = 2
                     break
@@ -212,7 +217,7 @@ class Game():
 
                 board = self.gameboard.Update_numpy_board(board, row, col, 'player1')
 
-                if self.bot1.Check_winning(board) == 1: #FIXME: this is bad
+                if self.bot1.Check_winning(board) == 1:
                     print('The human has won!')
                     outcome = 1
                     break
@@ -225,7 +230,7 @@ class Game():
                 # Do move for second player
                 board, elapsed_time = self.Handle_bot_move(board, bot1, 'player2')
                 bot1.elapsed_time += elapsed_time
-                if self.bot1.Check_winning(board) == 2: #FIXME: this is bad
+                if self.bot1.Check_winning(board) == 2:
                     print(bot1.name, 'has won!')
                     outcome = 2
                     break
@@ -255,7 +260,7 @@ class Game():
 
         start = time.time()
         # Play the bot move
-        row, col = self.bot1.Do_move(board, given_bot) #FIXME: this is bad   
+        row, col = self.bot1.Do_move(board, given_bot)
         end = time.time()
 
         elapsed_time = round(end - start, 2)
