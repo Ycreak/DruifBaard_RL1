@@ -28,6 +28,8 @@ class Game():
         self.bot7 = bot('ab_TT_ID1', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
         self.bot8 = bot('ab_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
         self.bot9 = bot('ab_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
+
+        self.botx = bot('mcts500', 'mcts', self.board_dimension, iterations=500)
         self.bot10 = bot('mcts1k', 'mcts', self.board_dimension, iterations=1000)
         self.bot11 = bot('mcts5k', 'mcts', self.board_dimension, iterations=5000)
         self.bot12 = bot('mcts10k', 'mcts', self.board_dimension, iterations=10000)
@@ -42,6 +44,7 @@ class Game():
 
         self.bot18 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
         self.bot19 = bot('ab4D_TT_ID3', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=3)
+        self.bot20 = bot('ab4D_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
 
 
         # Set experiment lists
@@ -66,7 +69,7 @@ class Game():
         self.mcts_experiment3 = [
             self.bot16, self.bot17, self.bot18, self.bot19
         ]
-        self.test = [self.bot3, self.bot14]
+        self.test = [self.botx, self.bot10, self.bot11, self.bot12]
         self.bot_list = [
             self.bot1,
             # self.bot2,

@@ -23,7 +23,7 @@ if __name__ == '__main__':
     perform_experiments (bool): decides whether the experiments as seen in the paper should be run
     tourney_rounds (int): decides how many round robins need to be played    
     """
-    board_dimension = 6
+    board_dimension = 4
     perform_experiments = True
     tourney_rounds = 4
     # Call the game class, which handles the rest of the game.

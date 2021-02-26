@@ -39,7 +39,7 @@ class Node:
             term = 1
         else:
             term = -1
-
+    
         choices_weights = [
             term * (c.q / c.n) + c_param * np.sqrt((np.log(self.n) / c.n))
             for c in self.children
@@ -47,7 +47,7 @@ class Node:
         return self.children[np.argmax(choices_weights)]
         
     def highest_q(self):
-        qs = [c.q for c in self.children]
+        qs = [c.n for c in self.children]
         return self.children[np.argmax(qs)]
 
 
