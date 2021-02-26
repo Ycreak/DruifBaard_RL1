@@ -24,7 +24,7 @@ class Node:
         """        
         return len(self.children) >= len(np.argwhere(self.board == 0))
     
-    def best_child(self, c_param=1):
+    def best_child(self, c_param=1, player=1):
         """Calculates UCT and determines the best child node
 
         Args:
@@ -32,12 +32,21 @@ class Node:
 
         Returns:
             Node: The child node with the highest UCT score
-        """         
+        """
+        if player == self.player:
+            term = 1
+        else:
+            term = -1
+
         choices_weights = [
-            (c.q / c.n) + c_param * np.sqrt((np.log(self.n) / c.n))
+            term * (c.q / c.n) + c_param * np.sqrt((np.log(self.n) / c.n))
             for c in self.children
         ]
         return self.children[np.argmax(choices_weights)]
+        
+    def highest_q(self):
+        qs = [c.q for c in self.children]
+        return self.children[np.argmax(qs)]
 
 
 class Bot:
@@ -867,7 +876,7 @@ class Bot:
             node.children.append(Node(board=copy_board, player=1, parent=node, row=row, col=col))
         return node.children[-1]
     
-    def select(self, node, c_param):
+    def select(self, node, c_param, player):
         """Traverse the tree to find the most promising leaf and expand it (if possible)
 
         Args:
@@ -877,7 +886,7 @@ class Bot:
             Node: The expanded node of the most promising leaf
         """
         while node.fully_expanded() and not (self.is_terminal(node) > 0):
-            node = node.best_child(c_param)
+            node = node.best_child(c_param, player=player)
         
         if not (self.is_terminal(node) > 0):
             return self.expand(node) # The node can be expanded
@@ -956,7 +965,7 @@ class Bot:
                 if time.time() >= end_time:
                     break
 
-            leaf = self.select(root, c_param)    # Select and expand
+            leaf = self.select(root, c_param, maximizing_player)    # Select and expand
             # print("selected:")
             # print(leaf.parent.board)
             # print("expanded to:")
@@ -974,6 +983,6 @@ class Bot:
             
             i = i + 1
 
-        best_child = root.best_child(c_param)
+        best_child = root.highest_q()
         return best_child.row, best_child.col
 

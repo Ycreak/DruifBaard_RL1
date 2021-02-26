@@ -24,6 +24,6 @@ if __name__ == '__main__':
     """
     board_dimension = 4
     perform_experiments = True
-    tourney_rounds = 3
+    tourney_rounds = 4
     # Call the game class, which handles the rest of the game.
     game = Game(board_dimension, perform_experiments, tourney_rounds)
