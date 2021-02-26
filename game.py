@@ -18,86 +18,85 @@ class Game():
         self.board_dimension = board_dimension
         self.perform_experiments = perform_experiments
         self.tourney_rounds = tourney_rounds
+
         # Create our bots
         self.bot1 = bot('rnd', 'random', self.board_dimension)
+
         self.bot2 = bot('ab3R', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=False, use_tt=False, id_time_limit=0)
         self.bot3 = bot('ab3D', 'alphabeta', self.board_dimension, search_depth=3, use_dijkstra=True, use_tt=False, id_time_limit=0)
         self.bot4 = bot('ab4D', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
-        self.bot5 = bot('mcts500', 'mcts', self.board_dimension, iterations=500)
+
         self.bot6 = bot('ab4D_TT', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0)
+
         self.bot7 = bot('ab_TT_ID1', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
-        self.bot8 = bot('ab_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
-        self.bot9 = bot('ab_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
+        self.bot8 = bot('ab_TT_ID5', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=5)
+        self.bot9 = bot('ab_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
 
-        self.botx = bot('mcts500', 'mcts', self.board_dimension, iterations=500)
-        self.bot10 = bot('mcts1k', 'mcts', self.board_dimension, iterations=1000)
-        self.bot11 = bot('mcts5k', 'mcts', self.board_dimension, iterations=5000)
-        self.bot12 = bot('mcts10k', 'mcts', self.board_dimension, iterations=10000)
-        self.bot13 = bot('mcts5k_C0.7', 'mcts', self.board_dimension, iterations=5000, c_param=0.7)
-        self.bot14 = bot('mcts5k_C1.0', 'mcts', self.board_dimension, iterations=5000, c_param=1)
-        self.bot15 = bot('mcts5k_C1.3', 'mcts', self.board_dimension, iterations=5000, c_param=1.3)
+        self.bot10 = bot('mcts500', 'mcts', self.board_dimension, iterations=500)
+        self.bot11 = bot('mcts1k', 'mcts', self.board_dimension, iterations=1000)
+        self.bot12 = bot('mcts5k', 'mcts', self.board_dimension, iterations=5000)
+        self.bot13 = bot('mcts10k', 'mcts', self.board_dimension, iterations=10000)
 
-        self.bot16 = bot('mctsinf_T1_C0.1', 'mcts', self.board_dimension, iterations=1000000, c_param=0.1, mcts_time_limit=1)
-        self.bot17 = bot('mctsinf_T1_C0.5', 'mcts', self.board_dimension, iterations=1000000, c_param=0.5, mcts_time_limit=1)
-        self.bot18 = bot('mctsinf_T1_C1.0', 'mcts', self.board_dimension, iterations=1000000, c_param=1, mcts_time_limit=1)
-        self.bot19 = bot('mctsinf_T1_C1.5', 'mcts', self.board_dimension, iterations=1000000, c_param=1.5, mcts_time_limit=1)
+        self.bot14 = bot('mctsinf_T1', 'mcts', self.board_dimension, iterations=1000000, mcts_time_limit=1)
+        self.bot15 = bot('mctsinf_T5', 'mcts', self.board_dimension, iterations=1000000, mcts_time_limit=5)
+        self.bot16 = bot('mctsinf_T10', 'mcts', self.board_dimension, iterations=1000000, mcts_time_limit=10)
 
-        # self.bot18 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
-        # self.bot19 = bot('ab4D_TT_ID3', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=3)
-        self.botab = bot('ab4D_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
-        self.botmc = bot('mctsinf_T10_C0.5', 'mcts', self.board_dimension, iterations=1000000, c_param=0.5, mcts_time_limit=10)
+        self.bot17 = bot('mctsinf_T1_C0.1', 'mcts', self.board_dimension, iterations=1000000, c_param=0.1, mcts_time_limit=1)
+        self.bot18 = bot('mctsinf_T1_C0.5', 'mcts', self.board_dimension, iterations=1000000, c_param=0.5, mcts_time_limit=1)
+        self.bot19 = bot('mctsinf_T1_C1.0', 'mcts', self.board_dimension, iterations=1000000, c_param=1, mcts_time_limit=1)
+        self.bot20 = bot('mctsinf_T1_C1.5', 'mcts', self.board_dimension, iterations=1000000, c_param=1.5, mcts_time_limit=1)
 
-        self.bot24 = bot('ab4D_TT_ID1', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
-        self.bot25 = bot('mctsinf_T1', 'mcts', self.board_dimension, iterations=100000000, c_param=0.1, mcts_time_limit=1)
-
-        self.bot26 = bot('ab4D_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
-        self.bot27 = bot('mctsinf_T10', 'mcts', self.board_dimension, iterations=100000000, c_param=0.1, mcts_time_limit=10)
-
-        # Set experiment lists
-        self.ab = [
-            self.bot2, self.bot3, self.bot4
+        self.bot21 = bot('ab4D_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
+        self.bot22 = bot('mctsinf_T10_C0.5', 'mcts', self.board_dimension, iterations=1000000, c_param=0.5, mcts_time_limit=10)
+        
+        # Experiments
+        self.ex1 = [
+            self.bot2,
+            self.bot3,
+            self.bot4
         ]
-        self.ab_TT = [
-            self.bot4, self.bot6
+        self.ex2 = [
+            self.bot4,
+            self.bot6
         ]
-        self.ab_ID = [
-            self.bot7, self.bot8 , self.bot9
-        ]
-        self.mcts_iter = [
-            self.bot5, self.bot10, self.bot11, self.bot12
-        ]
-        self.mcts_timed = [
-            #self.bot20, self.bot21
-        ]
-        self.mcts_c = [
-            self.bot13, self.bot14, self.bot15
-        ]
-        self.mcts_experiment3 = [
-            self.bot16, self.bot17, self.bot18, self.bot19
-        ]
-        self.test = [self.botx, self.bot10, self.bot11, self.bot12]
-        self.bot_list = [
-            self.bot1,
-            # self.bot2,
-            # self.bot3,
+        self.ex3 = [
             self.bot7,
-            # self.bot5,
-            # self.bot6,
-            # self.bot7,
             self.bot8,
-            self.bot14
+            self.bot9
         ]
+        self.ex4 = [
+            self.bot10,
+            self.bot11,
+            self.bot12,
+            self.bot13
+        ]
+        self.ex5 = [
+            self.bot14,
+            self.bot15,
+            self.bot16
+        ]
+        self.ex6 = [
+            self.bot17,
+            self.bot18,
+            self.bot19,
+            self.bot20
+        ]
+        self.ex7 = [
+            self.bot21,
+            self.bot22
+        ]
+
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
-        self.board = self.gameboard.board      
+        self.board = self.gameboard.board
         
         # Allow the human to play against the given bot
         if human_playing:
-            res = self.Play_human_match(self.botx, self.board)
+            res = self.Play_human_match(self.bot1, self.board)
 
         # Choose to perform experiments
         if self.perform_experiments:
-            self.Perform_experiments(self.board, self.test)
+            self.Perform_experiments(self.board, self.ex1) # Change the experiment here!
 
             print('End of experiments, shutting down.')
             exit(1)
@@ -132,7 +131,7 @@ class Game():
             r_bot1, r_bot2 = rate_1vs1(r_bot1, r_bot2)
 
         elif outcome == 2: # bot2 wins
-            r_bot2, r_bot1 = rate_1vs1(r_bot2, r_bot1) #TODO: is this good?
+            r_bot2, r_bot1 = rate_1vs1(r_bot2, r_bot1)
 
         # Update rating
         bot1.rating = r_bot1

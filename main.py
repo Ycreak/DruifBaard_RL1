@@ -23,9 +23,9 @@ if __name__ == '__main__':
     perform_experiments (bool): decides whether the experiments as seen in the paper should be run
     tourney_rounds (int): decides how many round robins need to be played    
     """
-    board_dimension = 4
+    board_dimension = 6
     perform_experiments = True
-    tourney_rounds = 12
+    tourney_rounds = 6
 
     human_playing = True
 
