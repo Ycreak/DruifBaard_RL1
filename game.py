@@ -401,9 +401,6 @@ class Game():
             # Print their names
             print('########################################')
             print("{} vs {}".format(first_participant_bot.name, second_participant_bot.name))
-            
-            # hier legen?
-
             first_participant_bot, second_participant_bot = self.Play_TrueSkill_match(self.tourney_rounds, board, first_participant_bot, second_participant_bot)
             # Make sure this match is marked as played
             tournament.add_win(match, first_participant_bot)
