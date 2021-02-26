@@ -39,17 +39,12 @@ class Node:
             term = 1
         else:
             term = -1
-    
+        
         choices_weights = [
             term * (c.q / c.n) + c_param * np.sqrt((np.log(self.n) / c.n))
             for c in self.children
         ]
         return self.children[np.argmax(choices_weights)]
-        
-    def highest_q(self):
-        qs = [c.q / c.n for c in self.children]
-        return self.children[np.argmax(qs)]
-
 
 class Bot:
     def __init__(self, name, algorithm, board_dimension, iterations=500, c_param=1, search_depth=-1, use_dijkstra=False,
@@ -963,7 +958,7 @@ class Bot:
 
         Args:
             node (Node): Node to backpropagate
-            result (int): The rollout value (1,0,-1)
+            result (int): The rollout value (1,0)
         """        
         node.n = node.n + 1         # Add an extra visit
         node.q = node.q + result    # Add the rollout result
@@ -999,6 +994,6 @@ class Bot:
             self.backpropagate(leaf, simulation_result) # Backpropagate error
             i = i + 1
 
-        best_child = root.highest_q()
+        best_child = root.best_child(c_param=c_param, player=maximizing_player)
         return best_child.row, best_child.col
 

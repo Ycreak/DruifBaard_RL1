@@ -75,7 +75,7 @@ class Game():
         self.mcts_experiment3 = [
             self.bot16, self.bot17, self.bot18, self.bot19
         ]
-        self.test = [self.botab, self.botmc]
+        self.test = [self.botx, self.bot10, self.bot11, self.bot12]
         self.bot_list = [
             self.bot1,
             # self.bot2,
@@ -93,11 +93,11 @@ class Game():
         
         # Allow the human to play against the given bot
         if human_playing:
-            res = self.Play_human_match(self.bot20, self.board)
+            res = self.Play_human_match(self.botx, self.board)
 
         # Choose to perform experiments
         if self.perform_experiments:
-            self.Perform_experiments(self.board, self.mcts_experiment3)
+            self.Perform_experiments(self.board, self.test)
 
             print('End of experiments, shutting down.')
             exit(1)
