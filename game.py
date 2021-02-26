@@ -37,8 +37,8 @@ class Game():
         self.bot16 = bot('mcts5k_C1.3_T3', 'mcts', self.board_dimension, iterations=5000, c_param=1.3, mcts_time_limit=3)
         self.bot17 = bot('mcts5k_C1.3_T2', 'mcts', self.board_dimension, iterations=5000, c_param=1.3, mcts_time_limit=2)
 
-        self.bot18 = bot('ab_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
-        self.bot19 = bot('mctsinf_T10', 'mcts', self.board_dimension, iterations=1000000, c_param=1, mcts_time_limit=10)
+        self.bot18 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
+        self.bot19 = bot('ab4D_TT_ID3', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=3)
 
 
         # Set experiment lists
@@ -64,6 +64,21 @@ class Game():
             self.bot18, self.bot19
         ]
 
+        self.ab_mcts_timed = [
+            self.bot16, self.bot17, self.bot18, self.bot19
+        ]
+
+        self.bot_list = [
+            self.bot1,
+            # self.bot2,
+            # self.bot3,
+            self.bot7,
+            # self.bot5,
+            # self.bot6,
+            # self.bot7,
+            self.bot8,
+            self.bot14
+        ]
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
         self.board = self.gameboard.board      
@@ -74,7 +89,11 @@ class Game():
 
         # Choose to perform experiments
         if self.perform_experiments:
-            self.Perform_experiments(self.board, self.ab_ID)
+<<<<<<< Updated upstream
+            self.Perform_experiments(self.board, self.mcts_experiment)
+=======
+            self.Perform_experiments(self.board, self.ab_mcts)
+>>>>>>> Stashed changes
             print('End of experiments, shutting down.')
             exit(1)
 
