@@ -42,9 +42,10 @@ class Game():
         self.bot18 = bot('mctsinf_T1_C1.0', 'mcts', self.board_dimension, iterations=1000000, c_param=1, mcts_time_limit=1)
         self.bot19 = bot('mctsinf_T1_C1.5', 'mcts', self.board_dimension, iterations=1000000, c_param=1.5, mcts_time_limit=1)
 
-        self.bot18 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
-        self.bot19 = bot('ab4D_TT_ID3', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=3)
-        self.bot20 = bot('ab4D_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
+        # self.bot18 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
+        # self.bot19 = bot('ab4D_TT_ID3', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=3)
+        self.botab = bot('ab4D_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
+        self.botmc = bot('mctsinf_T10_C0.5', 'mcts', self.board_dimension, iterations=1000000, c_param=0.5, mcts_time_limit=10)
 
         self.bot24 = bot('ab4D_TT_ID1', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
         self.bot25 = bot('mctsinf_T1', 'mcts', self.board_dimension, iterations=100000000, c_param=0.1, mcts_time_limit=1)
@@ -66,7 +67,7 @@ class Game():
             self.bot5, self.bot10, self.bot11, self.bot12
         ]
         self.mcts_timed = [
-            self.bot20, self.bot21
+            #self.bot20, self.bot21
         ]
         self.mcts_c = [
             self.bot13, self.bot14, self.bot15
@@ -74,7 +75,7 @@ class Game():
         self.mcts_experiment3 = [
             self.bot16, self.bot17, self.bot18, self.bot19
         ]
-        self.test = [self.botx, self.bot10, self.bot11, self.bot12]
+        self.test = [self.botab, self.botmc]
         self.bot_list = [
             self.bot1,
             # self.bot2,
@@ -92,11 +93,11 @@ class Game():
         
         # Allow the human to play against the given bot
         if human_playing:
-            res = self.Play_human_match(self.bot22, self.board)
+            res = self.Play_human_match(self.bot20, self.board)
 
         # Choose to perform experiments
         if self.perform_experiments:
-            self.Perform_experiments(self.board, self.test)
+            self.Perform_experiments(self.board, self.mcts_experiment3)
 
             print('End of experiments, shutting down.')
             exit(1)

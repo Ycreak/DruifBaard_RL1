@@ -25,7 +25,7 @@ if __name__ == '__main__':
     """
     board_dimension = 4
     perform_experiments = True
-    tourney_rounds = 4
+    tourney_rounds = 12
 
     human_playing = True
 

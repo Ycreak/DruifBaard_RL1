@@ -47,7 +47,7 @@ class Node:
         return self.children[np.argmax(choices_weights)]
         
     def highest_q(self):
-        qs = [c.n for c in self.children]
+        qs = [c.q / c.n for c in self.children]
         return self.children[np.argmax(qs)]
 
 
