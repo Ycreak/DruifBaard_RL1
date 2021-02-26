@@ -88,12 +88,7 @@ class Game():
 
         # Choose to perform experiments
         if self.perform_experiments:
-
             self.Perform_experiments(self.board, self.test)
-
-            self.Perform_experiments(self.board, self.mcts_experiment)
-
-            self.Perform_experiments(self.board, self.ab_mcts)
 
             print('End of experiments, shutting down.')
             exit(1)

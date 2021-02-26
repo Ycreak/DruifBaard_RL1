@@ -940,7 +940,6 @@ class Bot:
         while 1: # Keep playing until...
             final = self.Check_winning(simulation_board)
             if final != 0:
-                # print(simulation_board)
                 if final == player:
                     return 1 # The player won
                 else:
@@ -986,13 +985,8 @@ class Bot:
         else:
             maximizing_player = 1
 
-        # Create the initial tree
         copy_board = copy.deepcopy(board)
-
-        # print("The initial board")
-        # print(board)
         root = Node(copy_board, maximizing_player, parent=None, row=None, col=None)
-        
         
         i = 0
         while i < iterations:
@@ -1001,24 +995,9 @@ class Bot:
                     break
 
             leaf = self.select(root, c_param, maximizing_player)    # Select and expand
-            # print("selected:")
-            # print(leaf.parent.board)
-            # print("expanded to:")
-            # print(leaf.board)
-            
             simulation_result = self.rollout(leaf, maximizing_player) # Simulate random
-            # print("did a rollout (see above), and the result was")
-            # print(simulation_result)
-            
-            
             self.backpropagate(leaf, simulation_result) # Backpropagate error
-            # print("Backpropagated to the top (starting at leaf):")
-            # print(str(leaf.q))
-            # print(str(leaf.parent.q))
-            
             i = i + 1
-            # if i == 10:
-            #     exit()
 
         best_child = root.highest_q()
         return best_child.row, best_child.col
