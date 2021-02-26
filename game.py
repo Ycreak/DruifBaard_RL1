@@ -37,55 +37,51 @@ class Game():
         self.bot16 = bot('mcts5k_C1.3_T3', 'mcts', self.board_dimension, iterations=5000, c_param=1.3, mcts_time_limit=3)
         self.bot17 = bot('mcts5k_C1.3_T2', 'mcts', self.board_dimension, iterations=5000, c_param=1.3, mcts_time_limit=2)
 
+        self.bot18 = bot('ab_TT_ID10', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=10)
+        self.bot19 = bot('mctsinf_T10', 'mcts', self.board_dimension, iterations=1000000, c_param=1, mcts_time_limit=10)
+
+
         # Set experiment lists
-        self.alphabeta_experiment = [
+        self.ab = [
             self.bot2, self.bot3, self.bot4
         ]
-        self.alphabeta_plus_experiment = [
-            self.bot4, self.bot6, # self.bot7, self.bot8, self.bot9
+        self.ab_TT = [
+            self.bot4, self.bot6
         ]
-        self.alphabeta_id = [
+        self.ab_ID = [
             self.bot7, self.bot8 , self.bot9
         ]
-        self.mcts_experiment = [
-            self.bot10, self.bot11 #, self.bot12
+        self.mcts_iter = [
+            self.bot5, self.bot10, self.bot11, self.bot12
         ]
-        self.mcts_experiment2 = [
+        self.mcts_timed = [
+            self.bot16, self.bot17
+        ]
+        self.mcts_c = [
             self.bot13, self.bot14, self.bot15
         ]
-
         self.ab_mcts = [
-            self.bot7, self.bot8, self.bot14
+            self.bot18, self.bot19
         ]
 
-        self.bot_list = [
-            self.bot1,
-            # self.bot2,
-            # self.bot3,
-            self.bot7,
-            # self.bot5,
-            # self.bot6,
-            # self.bot7,
-            self.bot8,
-            self.bot14
-        ]
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
         self.board = self.gameboard.board      
         
+        # Allow the human to play against the given bot
+        if human_playing:
+            res = self.Play_human_match(self.bot19, self.board)
+
         # Choose to perform experiments
         if self.perform_experiments:
-            self.Perform_experiments(self.board, self.mcts_experiment)
+            self.Perform_experiments(self.board, self.ab_ID)
             print('End of experiments, shutting down.')
             exit(1)
-
-        if human_playing:
-            res = self.Play_human_match(self.bot1, self.board)
 
         else:
             # Or just a few matches between two bots
             for _ in range(20):
-                res = self.Play_single_bot_match(self.bot_list[6], self.bot_list[4], self.board)
+                res = self.Play_single_bot_match(self.bot1, self.bot2, self.board)
                 print("Player " + str(res) + " won")
 
     def Play_TrueSkill_match(self, board, rounds, bot1, bot2):
