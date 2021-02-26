@@ -134,17 +134,13 @@ class Bot:
         use_id = (id_time_limit != 0)
 
         if use_id:
-            #Initialize the communication back from the process
+            #Initialize the communication between the processes
             manager = Manager()
             communication = manager.list()
             communication.append([-130, -130])
-            communication.append(bot.cutoffs)
-            communication.append(bot.searched_nodes)
-            communication.append(bot.transposition_table)
-            communication.append(bot.hash_table)
             
             #Create a process to search for the best move
-            process = multiprocessing.Process(target=self.Iterative_deepening, name="Iterative_deepening", args=(communication, use_tt, copy_board, alpha, beta, maximizing_player, use_dijkstra))
+            process = multiprocessing.Process(target=self.Iterative_deepening, name="Iterative_deepening", args=(communication, use_tt, copy_board, alpha, beta, maximizing_player, use_dijkstra, bot))
             process.start()
 
             #Wait for the time limit to be over
@@ -154,12 +150,7 @@ class Bot:
             process.terminate()
             process.join()
 
-            #Get the information back from the process
             row, col = communication[0]
-            bot.cutoffs = communication[1]
-            bot.searched_nodes = communication[2]
-            bot.transposition_table = communication[3]
-            bot.hash_table = communication[4]
 
             #If the search could not complete depth 1 search, choose a random move
             if row == -130:
@@ -168,33 +159,16 @@ class Bot:
             return row, col
 
         else:
-            #Get the information from the bot object
-            self.cutoffs = bot.cutoffs
-            self.searched_nodes = bot.searched_nodes
-
             if use_tt:
-                #Get the information from the bot object
-                self.hash_table = bot.hash_table
-                self.transposition_table = bot.transposition_table
-
-                value, space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1)
-
-                #Save the information in the bot object
-                bot.hash_table = self.hash_table
-                bot.transposition_table = self.transposition_table
-
+                value, space = self.Minimax_tt(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
             else:
-                value, space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra)
-
-            #Save the information in the bot object
-            bot.cutoffs = self.cutoffs
-            bot.searched_nodes = self.searched_nodes
+                value, space = self.Minimax(copy_board, search_depth, alpha, beta, maximizing_player, use_dijkstra, bot)
             
         row, col = space
 
         return row, col   
 
-    def Iterative_deepening(self, communication, use_tt, copy_board, alpha, beta, maximizing_player, use_dijkstra):
+    def Iterative_deepening(self, communication, use_tt, copy_board, alpha, beta, maximizing_player, use_dijkstra, bot):
         """[summary]
         Args:
             communication (list): List of information to be transfered between the processes
@@ -210,35 +184,24 @@ class Bot:
             bot (Bot): bot to acces information for transposition tables
         """        
 
-        #Get the information from the main process
-        self.cutoffs = communication[1]
-        self.searched_nodes = communication[2]
-        self.transposition_table = communication[3]
-        self.hash_table = communication[4]
-
         #The initial search depth
         depth_id = 1
 
         #Keep searching till time time is up
         while True:
             if use_tt:
-                new_value, new_space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1)
+                new_value, new_space = self.Minimax_tt(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, -1, bot)
             else:
-                new_value, new_space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra)
+                new_value, new_space = self.Minimax(copy_board, depth_id, alpha, beta, maximizing_player, use_dijkstra, bot)
             
-            #Save the information in communication to access it from the main process
             communication[0] = new_space
-            communication[1] = self.cutoffs
-            communication[2] = self.searched_nodes
-            communication[3] = self.transposition_table
-            communication[4] = self.hash_table
 
             #Next loop we use a higer search depth
             depth_id = depth_id + 1
 
         return
         
-    def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra):
+    def Minimax(self, board, depth, alpha, beta, max_player, use_dijkstra, bot):
         """Minimax algorithm. 
             The algorithm returns the value of the current playstate and the best space in this state.
 
@@ -290,14 +253,14 @@ class Bot:
 
             for space in spaces:
                 number_of_searched_nodes = number_of_searched_nodes + 1
-                self.searched_nodes = self.searched_nodes + 1
+                bot.searched_nodes = bot.searched_nodes + 1
 
                 #Make a copy of the game board and take the space in that board
                 copy_board = copy.deepcopy(board)
                 row, col = space
                 copy_board[row, col] = 1
 
-                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, False, use_dijkstra)
+                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, False, use_dijkstra, bot)
                 
                 if value > max_value:
                     max_value = value
@@ -306,7 +269,7 @@ class Bot:
                 #Alpha-beta pruning
                 alpha = max(alpha, value)
                 if beta <= alpha:
-                    self.cutoffs = self.cutoffs + (number_of_spaces - number_of_searched_nodes)
+                    bot.cutoffs = bot.cutoffs + (number_of_spaces - number_of_searched_nodes)
                     break
 
             return max_value, max_space
@@ -322,14 +285,14 @@ class Bot:
 
             for space in spaces:
                 number_of_searched_nodes = number_of_searched_nodes + 1
-                self.searched_nodes = self.searched_nodes + 1
+                bot.searched_nodes = bot.searched_nodes + 1
 
                 #Make a copy of the game board and take the space in that board
                 copy_board = copy.deepcopy(board)
                 row, col = space
                 copy_board[row, col] = 2
 
-                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, True, use_dijkstra)
+                value, best_space = self.Minimax(copy_board, depth - 1, alpha, beta, True, use_dijkstra, bot)
 
                 if value < min_value:
                     min_value = value
@@ -338,12 +301,12 @@ class Bot:
                 #Alpha-beta pruning
                 beta = min(beta, value)
                 if beta <= alpha:
-                    self.cutoffs = self.cutoffs + (number_of_spaces - number_of_searched_nodes)
+                    bot.cutoffs = bot.cutoffs + (number_of_spaces - number_of_searched_nodes)
                     break
 
             return min_value, min_space
 
-    def Minimax_tt(self, board, depth, alpha, beta, max_player, use_dijkstra, hashed_board):
+    def Minimax_tt(self, board, depth, alpha, beta, max_player, use_dijkstra, hashed_board, bot):
         """Minimax algorithm (transposition tables version). 
             The algorithm returns the value of the current playstate and the best space in this state.
 
@@ -367,10 +330,10 @@ class Bot:
 
         #If the hashed_board has not been made, make the board
         if hashed_board == -1:
-            hashed_board = self.Hash_board(board)
+            hashed_board = self.Hash_board(board, bot)
         
         #If we've seen this game state before, load the result from the transposition table 
-        succes, value, space = self.Load_result(hashed_board, depth)
+        succes, value, space = self.Load_result(hashed_board, depth, bot)
         if succes:
             return value, space
 
@@ -378,7 +341,7 @@ class Bot:
         if np.all(board):
             value = 0
             space = [-700, -700]
-            self.Store_result(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space, bot)
             return value, space
 
         # If player 1 has won the game
@@ -386,21 +349,21 @@ class Bot:
         if winner == 1:
             value = 10
             space = [-800, -800]
-            self.Store_result(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space, bot)
             return value, space
 
         # If player 2 has won the game
         if winner == 2:
             value = -10
             space = [-900, -900]
-            self.Store_result(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space, bot)
             return value, space
 
         # If the algorithm has reached the search depth
         if depth == 0:
             value = self.Evaluate_game_state(board, use_dijkstra)
             space = [-100, -100]
-            self.Store_result(hashed_board, depth, value, space)
+            self.Store_result(hashed_board, depth, value, space, bot)
             return value, space
         
         # If it is the turn of the maximizing player
@@ -414,7 +377,7 @@ class Bot:
             
             for space in spaces:
                 number_of_searched_nodes = number_of_searched_nodes + 1
-                self.searched_nodes = self.searched_nodes + 1
+                bot.searched_nodes = bot.searched_nodes + 1
 
                 #Make a copy of the game board and take the space in that board
                 copy_board = copy.deepcopy(board)
@@ -422,9 +385,9 @@ class Bot:
                 copy_board[row, col] = 1
                 
                 hashed_board_copy = hashed_board
-                hashed_board_copy ^= self.hash_table[row][col][1]
+                hashed_board_copy ^= bot.hash_table[row][col][1]
 
-                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, False, use_dijkstra, hashed_board_copy)
+                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, False, use_dijkstra, hashed_board_copy, bot)
                 
                 if value > max_value:
                     max_value = value
@@ -433,10 +396,10 @@ class Bot:
                 #Alpha-beta pruning
                 alpha = max(alpha, value)
                 if beta <= alpha:
-                    self.cutoffs = self.cutoffs + (number_of_spaces - number_of_searched_nodes)
+                    bot.cutoffs = bot.cutoffs + (number_of_spaces - number_of_searched_nodes)
                     break
             
-            self.Store_result(hashed_board, depth, max_value, max_space)
+            self.Store_result(hashed_board, depth, max_value, max_space, bot)
             return max_value, max_space
         
         # If it is the turn of the minimizing player
@@ -450,7 +413,7 @@ class Bot:
 
             for space in spaces:
                 number_of_searched_nodes = number_of_searched_nodes + 1
-                self.searched_nodes = self.searched_nodes + 1
+                bot.searched_nodes = bot.searched_nodes + 1
 
                 #Make a copy of the game board and take the space in that board
                 copy_board = copy.deepcopy(board)
@@ -458,9 +421,9 @@ class Bot:
                 copy_board[row, col] = 2
 
                 hashed_board_copy = hashed_board
-                hashed_board_copy ^= self.hash_table[row][col][2]
+                hashed_board_copy ^= bot.hash_table[row][col][2]
 
-                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, True, use_dijkstra, hashed_board_copy)
+                value, best_space = self.Minimax_tt(copy_board, depth - 1, alpha, beta, True, use_dijkstra, hashed_board_copy, bot)
 
                 if value < min_value:
                     min_value = value
@@ -469,10 +432,10 @@ class Bot:
                 #Alpha-beta pruning
                 beta = min(beta, value)
                 if beta <= alpha:
-                    self.cutoffs = self.cutoffs + (number_of_spaces - number_of_searched_nodes)
+                    bot.cutoffs = bot.cutoffs + (number_of_spaces - number_of_searched_nodes)
                     break
             
-            self.Store_result(hashed_board, depth, min_value, min_space)
+            self.Store_result(hashed_board, depth, min_value, min_space, bot)
             return min_value, min_space
 
     def Evaluate_game_state(self, board, use_dijkstra):
@@ -712,7 +675,7 @@ class Bot:
         
         return adjacent_spaces
 
-    def Load_result(self, hashed_board, depth):
+    def Load_result(self, hashed_board, depth, bot):
         """Check if a game state has been seen before and return it if so
 
         Args:
@@ -725,13 +688,13 @@ class Bot:
                 The first int is the value found, the last two ints are the space found
         """        
 
-        if (hashed_board, depth) in self.transposition_table:
-            value, row, col = self.transposition_table[hashed_board, depth]
+        if (hashed_board, depth) in bot.transposition_table:
+            value, row, col = bot.transposition_table[hashed_board, depth]
             return True, value, [row, col]
 
         return False, -690, [-690, -690]
 
-    def Store_result(self, hashed_board, depth, value, space):
+    def Store_result(self, hashed_board, depth, value, space, bot):
         """Store a calculated value and best space for a seen gamestate
 
         Args:
@@ -743,10 +706,10 @@ class Bot:
         """        
       
         row, col = space
-        self.transposition_table[(hashed_board, depth)] = [value, row, col]
+        bot.transposition_table[(hashed_board, depth)] = [value, row, col]
         return
 
-    def Hash_board(self, board):
+    def Hash_board(self, board, bot):
         """Hash a gameboard to a int
 
         Args:
@@ -767,7 +730,7 @@ class Bot:
                     space = board[row][col]
 
                     #XOR the new space over the hashed_board
-                    hashed_board ^= self.hash_table[row][col][space]
+                    hashed_board ^= bot.hash_table[row][col][space]
 
         return hashed_board
 
