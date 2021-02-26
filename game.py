@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import time
+import datetime
 from trueskill import Rating, quality_1vs1, rate_1vs1
 # Class imports
 from bot import Bot as bot
@@ -12,7 +13,7 @@ from gameboard import Gameboard
 class Game():
     """This class handles the game: pits bots versus bots and plays tourneys.
     """
-    def __init__(self, board_dimension, perform_experiments, tourney_rounds):
+    def __init__(self, board_dimension, perform_experiments, tourney_rounds, human_playing):
         # Set global parameters
         self.board_dimension = board_dimension
         self.perform_experiments = perform_experiments
@@ -24,9 +25,9 @@ class Game():
         self.bot4 = bot('ab4D', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=False, id_time_limit=0)
         self.bot5 = bot('mcts500', 'mcts', self.board_dimension, iterations=500)
         self.bot6 = bot('ab4D_TT', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0)
-        self.bot7 = bot('ab4D_TT_ID0.5', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=0.5)
-        self.bot8 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
-        self.bot9 = bot('ab4D_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
+        self.bot7 = bot('ab_TT_ID1', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=1)
+        self.bot8 = bot('ab_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
+        self.bot9 = bot('ab_TT_ID4', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=4)
         self.bot10 = bot('mcts1k', 'mcts', self.board_dimension, iterations=1000)
         self.bot11 = bot('mcts5k', 'mcts', self.board_dimension, iterations=5000)
         self.bot12 = bot('mcts10k', 'mcts', self.board_dimension, iterations=10000)
@@ -39,20 +40,27 @@ class Game():
         self.bot18 = bot('mctsinf_T1_C1.0', 'mcts', self.board_dimension, iterations=1000000, c_param=1, mcts_time_limit=1)
         self.bot19 = bot('mctsinf_T1_C1.5', 'mcts', self.board_dimension, iterations=1000000, c_param=1.5, mcts_time_limit=1)
 
+        self.bot18 = bot('ab4D_TT_ID2', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=2)
+        self.bot19 = bot('ab4D_TT_ID3', 'alphabeta', self.board_dimension, search_depth=4, use_dijkstra=True, use_tt=True, id_time_limit=3)
+
+
         # Set experiment lists
-        self.alphabeta_experiment = [
+        self.ab = [
             self.bot2, self.bot3, self.bot4
         ]
-        self.alphabeta_plus_experiment = [
-            self.bot4, self.bot6, # self.bot7, self.bot8, self.bot9
+        self.ab_TT = [
+            self.bot4, self.bot6
         ]
-        self.alphabeta_plus_search_depth_experiment = [
-            self.bot7, self.bot8 #, self.bot9
+        self.ab_ID = [
+            self.bot7, self.bot8 , self.bot9
         ]
-        self.mcts_experiment = [
+        self.mcts_iter = [
             self.bot5, self.bot10, self.bot11, self.bot12
         ]
-        self.mcts_experiment2 = [
+        self.mcts_timed = [
+            self.bot16, self.bot17
+        ]
+        self.mcts_c = [
             self.bot13, self.bot14, self.bot15
         ]
         self.mcts_experiment3 = [
@@ -60,30 +68,41 @@ class Game():
         ]
         self.test = [self.bot3, self.bot14]
         self.bot_list = [
-            # self.bot1,
+            self.bot1,
             # self.bot2,
             # self.bot3,
-            self.bot4,
-            # self.bot5,
-            self.bot6,
             self.bot7,
+            # self.bot5,
+            # self.bot6,
+            # self.bot7,
             self.bot8,
-            self.bot9
+            self.bot14
         ]
         # Create a gameboard
         self.gameboard = Gameboard(board_dimension)
         self.board = self.gameboard.board      
         
+        # Allow the human to play against the given bot
+        if human_playing:
+            res = self.Play_human_match(self.bot19, self.board)
+
         # Choose to perform experiments
         if self.perform_experiments:
+
             self.Perform_experiments(self.board, self.test)
+
+            self.Perform_experiments(self.board, self.mcts_experiment)
+
+            self.Perform_experiments(self.board, self.ab_mcts)
+
             print('End of experiments, shutting down.')
             exit(1)
 
-        # Or just a few matches between two bots
-        for _ in range(20):
-            res = self.Play_single_bot_match(self.bot_list[6], self.bot_list[4], self.board)
-            print("Player " + str(res) + " won")
+        else:
+            # Or just a few matches between two bots
+            for _ in range(20):
+                res = self.Play_single_bot_match(self.bot1, self.bot2, self.board)
+                print("Player " + str(res) + " won")
 
     def Play_TrueSkill_match(self, board, rounds, bot1, bot2):
         """Plays a tourney with the given bots for the given round. Prints results to screen.
@@ -133,6 +152,10 @@ class Game():
         # Empty board before the game
         board = np.zeros(shape=(self.board_dimension + 1, self.board_dimension + 1), dtype=int)
 
+        # Empty lingering transposition tables
+        bot1.transposition_table = {}
+        bot2.transposition_table = {}
+
         # Play the game until a game ending condition is met.
         while(True):
             # If the board is not yet full, we can do a move
@@ -155,6 +178,60 @@ class Game():
                 bot2.elapsed_time += elapsed_time
                 if self.bot1.Check_winning(board) == 2: #FIXME: this is bad
                     print(bot2.name, 'has won!')
+                    outcome = 2
+                    break
+            else:
+                print('Board is full!')
+                outcome = 0
+                break
+
+        # Print the gameboard
+        self.gameboard.Print_gameboard(board)
+
+        return outcome
+
+    def Play_human_match(self, bot1, board):
+        """Plays a match between the provided bot and a human. Returns the outcome of the game. 0 means draw,
+        1 means the human won, 2 means bot 2 won.
+
+        Args:
+            bot1 (class object): object of bot1
+            board (np array): of the gameboard
+
+        Returns:
+            int: describing who won
+        """        
+
+        # Empty board before the game
+        board = np.zeros(shape=(self.board_dimension + 1, self.board_dimension + 1), dtype=int)
+
+        # Play the game until a game ending condition is met.
+        while(True):
+            # If the board is not yet full, we can do a move
+            if not self.gameboard.Check_board_full(board):
+                # Print the board for easy visibility
+                self.gameboard.Print_gameboard(board)
+                # Ask for input
+                row = int(input("What Row do you want to play? "))
+                col = int(input("What Column do you want to play? "))
+
+                board = self.gameboard.Update_numpy_board(board, row, col, 'player1')
+
+                if self.bot1.Check_winning(board) == 1: #FIXME: this is bad
+                    print('The human has won!')
+                    outcome = 1
+                    break
+            else:
+                print('Board is full!')
+                outcome = 0
+                break
+            # If player 1 did not win, check if the board is full
+            if not self.gameboard.Check_board_full(board):
+                # Do move for second player
+                board, elapsed_time = self.Handle_bot_move(board, bot1, 'player2')
+                bot1.elapsed_time += elapsed_time
+                if self.bot1.Check_winning(board) == 2: #FIXME: this is bad
+                    print(bot1.name, 'has won!')
                     outcome = 2
                     break
             else:
@@ -219,7 +296,7 @@ class Game():
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         # plt.show()
-        plt.savefig('plots/{0}3.png'.format(filename))
+        plt.savefig('plots/{0}-{1}.png'.format(filename, datetime.datetime.now().strftime("%H:%M:%S")))
 
     def Create_bar_plot(self, df, filename):
         """Simple function that creates a bar plot of the given dataframe.
@@ -325,6 +402,8 @@ class Game():
             print('########################################')
             print("{} vs {}".format(first_participant_bot.name, second_participant_bot.name))
             
+            # hier legen?
+
             first_participant_bot, second_participant_bot = self.Play_TrueSkill_match(self.tourney_rounds, board, first_participant_bot, second_participant_bot)
             # Make sure this match is marked as played
             tournament.add_win(match, first_participant_bot)

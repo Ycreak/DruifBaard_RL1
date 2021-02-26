@@ -23,6 +23,12 @@ class Gameboard():
         
         row_string = ''
         space_string = ''
+        top_row = '   '
+
+        for i in range(self.board_dimension + 1):
+            top_row = top_row + str(i) + ' '
+
+        print(top_row)
 
         # Print the board per row
         for i in range(self.board_dimension + 1):
@@ -34,7 +40,7 @@ class Gameboard():
             # Indent each row with a single whitespace to create hex board
             space_string = space_string + ' '
             
-            print(space_string + row_string)
+            print(i, space_string + row_string)
             row_string = ''
 
     def Create_numpy_board(self, rows, columns):
